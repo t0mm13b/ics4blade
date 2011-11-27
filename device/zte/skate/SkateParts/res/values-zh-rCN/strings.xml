@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <string name="app_name">Blade 设置</string>
+        <string name="prox_calibration_title_head">校准距离传感器</string>
+        <string name="prox_calibration_summary_head">当运行距离传感器校准时，不要在靠近屏幕顶部放置任何东西</string>
+        <string name="prox_display_title_head">显示距离传感器数据</string>
+        <string name="prox_display_summary_head">显示当前的距离传感器校准数据</string>
+        <string name="toast_error">错误:</string>
+        <string name="back_button">返回</string>
+        <string name="prox_restore_title_head">重置距离为默认值</string>
+        <string name="prox_restore_summary_head">移除校准数据(需要重启).</string>
+
+        <string name="delete_success">成功的恢复为默认值.请重启机器.</string>
+        <string name="delete_error">重置为默认值时失败.</string>
+        <string name="delete_no_file">已经使用默认值.</string>
+
+        <string name="usb_charging_title_head">USB 充电</string>
+        <string name="usb_charging_summary_head">开启/关闭USB充电</string>
+</resources>
