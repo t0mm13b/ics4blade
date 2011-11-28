@@ -1,1 +1,12 @@
 AOSP IceCreamSandwich port for the Zte Blade.
+
+What's working:
+1. Single touch screen (Preparing patch soon)
+2. Wifi.
+3. sdcard.
+
+What's not working:
+1. Telephony (3G, Radio)
+2. Bluetooth
+3. Sounds
+4. GPS
