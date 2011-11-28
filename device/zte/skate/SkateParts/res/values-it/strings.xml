@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <string name="app_name">Impostazioni ZTE Blade</string>
+        <string name="prox_calibration_title_head">Calibrazione sensore di prossimità</string>
+        <string name="prox_calibration_summary_head">Calibra il sensore di prossimità</string>
+        <string name="prox_display_title_head">Dati sensore di prossimità</string>
+        <string name="prox_display_summary_head">Visualizza i dati attuali del sensore di prossimità</string>
+        <string  name="toast_error">Errore:</string>
+        <string  name="back_button">Indietro</string>
+</resources>

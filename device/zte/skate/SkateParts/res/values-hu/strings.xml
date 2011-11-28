@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <string name="app_name">ZTE Blade beállítások</string>
+        <string name="prox_calibration_title_head">Proximity szenzor kalibráció</string>
+        <string name="prox_calibration_summary_head">Kalibráció alatt ne tegyen semmit a képernyő tetejének közelébe!</string>
+        <string name="prox_display_title_head">Proximity szenzor adatok</string>
+        <string name="prox_display_summary_head">Aktuális proximity szenzor kalibrációs adatok</string>
+        <string name="toast_error">Hiba:</string>
+        <string name="back_button">Vissza</string>
+        <string name="prox_restore_title_head">Alapértelmezett adatok visszaállítása</string>
+        <string name="prox_restore_summary_head">Kalibrációs adatok törlése (újraindítást igényel).</string>
+        <string name="delete_success">Alapértelmezett adatok sikeresen visszaállítva. Indítsa újra a telefont.</string>
+        <string name="delete_error">Nem sikerült visszaállítani az alapértelmezett adatokat.</string>
+        <string name="delete_no_file">Eddig is az alapértelmezett adatok voltak érvényben.</string>
+
+        <string name="usb_charging_title_head">USB töltés</string>
+        <string name="usb_charging_summary_head">USB töltés engedélyezése/tiltása</string>
+</resources>

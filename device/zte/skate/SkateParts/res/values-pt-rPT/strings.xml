@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <string name="app_name">Definições ZTE Blade</string>
+        <string name="prox_calibration_title_head">Calibrar sensor de proximidade</string>
+        <string name="prox_calibration_summary_head">Calibração do sensor de proximidade</string>
+        <string name="prox_display_title_head">Dados do sensor de proximidade</string>
+        <string name="prox_display_summary_head">Mostra os dados actuais de calibração do sensor de proximidade</string>
+        <string name="toast_error">Erro:</string>
+        <string name="back_button">Voltar</string>
+        <string name="usb_charging_title_head">Carregamento via USB</string>
+        <string name="usb_charging_summary_head">Activar/Desactivar carregamento</string>
+</resources>
