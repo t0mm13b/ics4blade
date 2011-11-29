@@ -63,6 +63,7 @@ DISABLE_DEXPREOPT := false
 
 PRODUCT_COPY_FILES += \
     device/zte/blade/qwerty.kl:system/usr/keylayout/qwerty.kl \
+	device/zte/blade/Generic.kl:system/usr/keylayout/Generic.kl \
 	device/zte/blade/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc
 
 # fstab

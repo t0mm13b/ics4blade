@@ -23,15 +23,19 @@ on boot
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chown bluetooth bluetooth /proc/bluetooth/sleep/proto
+
     chown system system /sys/module/sco/parameters/disable_esco
     chmod 0660 /sys/module/bluetooth_power/parameters/power
     chmod 0660 /sys/class/rfkill/rfkill0/state
     chmod 0660 /proc/bluetooth/sleep/proto
+    chown bluetooth bluetooth /dev/ttyHS0
+    chmod 0660 /dev/ttyHS0
     chown bluetooth bluetooth /sys/devices/platform/msm_serial_hs.0/clock
     chmod 0660 /sys/devices/platform/msm_serial_hs.0/clock
 
+
 # Setup android gadget
-   write /sys/module/g_android/parameters/serial_number CM7-Blade
+   write /sys/module/g_android/parameters/serial_number ICS-Blade
    write /sys/module/g_android/parameters/product_id 0x1351
 
 #create  WIFI filesystem structure
@@ -44,6 +48,16 @@ on boot
     chown dhcp dhcp /data/misc/dhcp
     mkdir /data/system 0775 system system
 
+# Permission for ril
+   chown radio system /dev/pm_monitor
+   chmod 0770 /dev/pm_monitor
+   chown radio system /dev/oncrpc/30000016:9c95bb4d
+   chown radio system /dev/oncrpc/30000000:dd7fe79a
+   chown radio system /dev/oncrpc/30000019:821a1945
+   chown radio system /dev/oncrpc/3000003c:beb78360
+   chown radio system /dev/oncrpc/30000003:d03123cc
+   chown radio system /dev/oncrpc/3000000e:00060000
+   chown radio system /dev/oncrpc/30000012:00010000
    mkdir /data/local
    chmod 0777 /data/local
    chown radio shell /data/local
@@ -54,7 +68,12 @@ on boot
 # For qmuxd socket
     mkdir /data/radio 0770 radio radio
     chown radio radio 0770 /data/radio
-
+    chown radio system /dev/pm_monitor
+    
+# Sensors
+    chmod 0777 /dev/akm8973_aot
+    chmod 0777 /dev/akm8973_dev
+    
     chown system system /sys/class/leds/green/blink
     chown system system /sys/class/leds/green/brightness
     chown system system /sys/class/leds/green/grpfreq
@@ -83,6 +102,7 @@ on boot
     write /sys/bus/platform/drivers/msm_sdcc/msm_sdcc.1/polling 1
 
 service qmuxd /system/bin/qmuxd 
+    class main
 
 on property:init.svc.bluetoothd=running
     write /sys/devices/virtual/bluetooth/hci0/idle_timeout 7000
@@ -126,7 +146,9 @@ service abtfilt /system/bin/abtfilt -c -d -z -n
     oneshot
 
 service akmd /system/bin/akmd2
-    oneshot
+    class main
+    user compass
+    group compass misc input
 
 service hostapd /system/bin/hostapd /data/misc/wifi/hostapd.conf
     socket hostapd_athap0 dgram 660 wifi wifi
