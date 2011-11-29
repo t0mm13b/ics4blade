@@ -116,6 +116,7 @@
         <item>"mobile_hipri,5,0,3"</item>
     </string-array>
 //-->
+<!--
 	 <string-array translatable="false" name="networkAttributes">
 		<item>"wifi,1,1,1,-1,true"</item>
 		<item>"mobile,0,0,0,-1,true"</item>
@@ -127,7 +128,15 @@
 		<item>"mobile_cbs,12,0,2,60000,true"</item>
 		<item>"wifi_p2p,13,1,0,-1,true"</item>
 	</string-array>
-
+//-->
+	<string-array translatable="false" name="networkAttributes">
+        <item>"wifi,1,1,1,-1,true"</item>
+		<item>"mobile,0,0,0,-1,true"</item>
+		<item>"mobile_mms,2,0,2,60000,true"</item>
+		<item>"mobile_supl,3,0,2,60000,true"</item>
+		<item>"mobile_dun,4,0,3,60000,true"</item>
+		<item>"mobile_hipri,5,0,3,60000,true"</item>
+	</string-array>
     <!-- List of regexpressions describing the interface (if any) that represent tetherable
          USB interfaces.  If the device doesn't want to support tething over USB this should
          be empty.  An example would be "usb.*" -->
@@ -137,24 +146,22 @@
 
     <!-- Regex array of allowable upstream ifaces for tethering - for example if you want
          tethering on a new interface called "foo2" add <item>"foo\\d"</item> to the array -->
-    <add-resource type="string" name="config_tether_upstream_regexs">
-        <string-array translatable="false" name="config_tether_upstream_regexs">
-            <item>"rmnet\\d"</item>
-            <item>"wlan\\d"</item>
-        </string-array>
-    </add-resource>
-        <!-- List of regexpressions describing the interface (if any) that represent tetherable
-             Wifi interfaces.  If the device doesn't want to support tethering over Wifi this
-             should be empty.  An example would be "softap.*" -->
-        <string-array translatable="false" name="config_tether_wifi_regexs">
-            <item>"athap0"</item>
-        </string-array>
+    <string-array translatable="false" name="config_tether_upstream_regexs">
+        <item>"rmnet\\d"</item>
+        <item>"wlan\\d"</item>
+    </string-array>
+
+    <!-- List of regexpressions describing the interface (if any) that represent tetherable
+         Wifi interfaces.  If the device doesn't want to support tethering over Wifi this
+         should be empty.  An example would be "softap.*" -->
+    <string-array translatable="false" name="config_tether_wifi_regexs">
+        <item>"athap0"</item>
+    </string-array>
 
 
-        <!-- Boolean indicating if we require the use of DUN on mobile for tethering -->
-    <add-resource type="bool" name="config_tether_dun_required">
-        <bool translatable="false" name="config_tether_dun_required">false</bool>
-    </add-resource>
+    <!-- Boolean indicating if we require the use of DUN on mobile for tethering -->
+    <bool translatable="false" name="config_tether_dun_required">false</bool>
+
     <!-- Vibrator pattern for a very short but reliable vibration for soft keyboard tap -->
     <integer-array name="config_keyboardTapVibePattern">
         <item>30</item>
