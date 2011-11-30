@@ -122,10 +122,12 @@
 
     <!-- Regex array of allowable upstream ifaces for tethering - for example if you want
          tethering on a new interface called "foo2" add <item>"foo\\d"</item> to the array -->
-    <string-array translatable="false" name="config_tether_upstream_regexs">
-        <item>"rmnet\\d"</item>
-        <item>"wlan\\d"</item>
-    </string-array>
+    <add-resource type="string" name="config_tether_upstream_regexs">
+        <string-array translatable="false" name="config_tether_upstream_regexs">
+            <item>"rmnet\\d"</item>
+            <item>"wlan\\d"</item>
+        </string-array>
+    </add-resourc>
 
     <!-- List of regexpressions describing the interface (if any) that represent tetherable
          Wifi interfaces.  If the device doesn't want to support tethering over Wifi this
@@ -136,7 +138,9 @@
 
 
     <!-- Boolean indicating if we require the use of DUN on mobile for tethering -->
-    <bool translatable="false" name="config_tether_dun_required">false</bool>
+    <add-resource type="bool" name="config_tether_dun_required">
+        <bool translatable="false" name="config_tether_dun_required">false</bool>
+    </add-resource>
 
     <!-- Vibrator pattern for a very short but reliable vibration for soft keyboard tap -->
     <integer-array name="config_keyboardTapVibePattern">
