@@ -127,7 +127,7 @@
             <item>"rmnet\\d"</item>
             <item>"wlan\\d"</item>
         </string-array>
-    </add-resourc>
+    </add-resource>
 
     <!-- List of regexpressions describing the interface (if any) that represent tetherable
          Wifi interfaces.  If the device doesn't want to support tethering over Wifi this
