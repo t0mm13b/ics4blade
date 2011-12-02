@@ -3016,12 +3016,30 @@ internalRequestTimedCallback (RIL_TimedCallback callback, void *param,
     return p_info;
 }
 
+static void
+internalRemoveTimedCallback(void *callbackInfo)
+{
+    UserCallbackInfo *p_info;
+    p_info = (UserCallbackInfo *)callbackInfo;
+    LOGI("remove timer callback event");
+    if(p_info) {
+        if (ril_timer_delete(&(p_info->event)))
+			free(p_info);
+    }
+}
 
 extern "C" void
 RIL_requestTimedCallback (RIL_TimedCallback callback, void *param,
                                 const struct timeval *relativeTime) {
     internalRequestTimedCallback (callback, param, relativeTime);
 }
+
+
+extern "C" void
+RIL_removeTimedCallback (void *callbackInfo) {
+    internalRemoveTimedCallback(callbackInfo);
+}
+
 
 const char *
 failCauseToString(RIL_Errno e) {
