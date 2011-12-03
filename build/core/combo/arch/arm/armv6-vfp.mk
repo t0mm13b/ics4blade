@@ -1,5 +1,5 @@
 # Configuration for Linux on ARM.
-# Generating binaries for the ARMv5TE architecture and higher
+# Generating binaries for the ARMv6-VFP architecture and higher
 #
 ARCH_ARM_HAVE_THUMB_SUPPORT     := true
 ARCH_ARM_HAVE_FAST_INTERWORKING := true

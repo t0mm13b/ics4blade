@@ -24,19 +24,6 @@
 #ifndef DALVIK_INTERP_DEFS_H_
 #define DALVIK_INTERP_DEFS_H_
 
-/*
- * Specify the starting point when switching between interpreters.
- */
-typedef enum InterpEntry {
-    kInterpEntryInstr = 0,      // continue to next instruction
-    kInterpEntryReturn = 1,     // jump to method return
-    kInterpEntryThrow = 2,      // jump to exception throw
-#if defined(WITH_JIT)
-    kInterpEntryResume = 3,     // Resume after single-step
-#endif
-} InterpEntry;
-
-
 #if defined(WITH_JIT)
 /*
  * Size of save area for callee-save FP regs, which are not automatically
