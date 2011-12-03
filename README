@@ -4,9 +4,24 @@ What's working:
 1. Single touch screen (Preparing patch soon)
 2. Wifi.
 3. sdcard.
+4. Telephony somewhat.
+5. Bluetooth
+6. Gps
 
 What's not working:
-1. Telephony (3G, Radio)
-2. Bluetooth
-3. Sounds
-4. GPS
+
+1. hardware acceleration
+2. telephony
+3. other stuff
+
+BUILDING INSTRUCTIONS BY hedgepigdaniel
+
+1. Install Linux on your computer. Ubuntu 11.10 worked well for me. 64 bit is highly recommended.
+2. Follow instructions here to initialise a build environment and download AOSP source (get the master branch): http://source.android.com/source/initializing.html
+3. Make a folder called something like ics4blade and clone the git repository here into it (when changes are made you can pull the latest from github, detailed instructions are on github.com)https://github.com/t0mm13b/ics4blade.
+5. Copy the AOSP source files into your ics4blade folder, without replacing the files that are already there (those are the ones we have changed).
+6. Follow instructions here: http://wiki.cyanogenmod.com/wiki/ZTE_Blade:_Compile_CyanogenMod_(Linux) to copy proprietary files from your blade. Also possible to use the extract_files.sh script. Just copy a recent blade rom to the WORKING_DIRECTORY and rename it blade_update.zip. Then run the script and the proprietary files should be there. 
+7. Follow instructions here to build: http://source.android.com/source/building.html . You can run "lunch" with no arguments to select from build targets, and if you add "otapackage" as an argument to "make" it will make a. update.zip, otherwise it will make a system.img.
+8. You can use dsixda's script on xda to make an update.zip from a system.img file that you build + a boot.img file that someone posts here. That way you can get an easily flashable package with the latest stuff.
+9. Get the latest ics gapps zip from here: http://download.clockworkmod.com/test/ (and remove extraneous stuff if you want to save space)
+10. Victory dance, post your results for the world to see.
