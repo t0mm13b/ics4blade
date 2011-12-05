@@ -147,8 +147,7 @@ service abtfilt /system/bin/abtfilt -c -d -z -n
 
 service akmd /system/bin/akmd2
     class main
-    user compass
-    group compass misc input
+    oneshot	
 
 service hostapd /system/bin/hostapd /data/misc/wifi/hostapd.conf
     socket hostapd_athap0 dgram 660 wifi wifi
