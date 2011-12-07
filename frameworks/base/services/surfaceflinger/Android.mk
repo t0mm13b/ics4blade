@@ -29,9 +29,11 @@ endif
 ifeq ($(TARGET_BOARD_PLATFORM), s5pc110)
 	LOCAL_CFLAGS += -DHAS_CONTEXT_PRIORITY -DNEVER_DEFAULT_TO_ASYNC_MODE
 endif
-ifeq ($(BOARD_HAS_FLIPPED_SCREEN),true)
-	LOCAL_CFLAGS += -DHAS_FLIPPED_SCREEN
+
+ifneq (,$(findstring $(TARGET_DEVICE),tuna toro maguro))
+	LOCAL_CFLAGS += -DREFRESH_RATE=59
 endif
+
 
 LOCAL_SHARED_LIBRARIES := \
 	libcutils \
@@ -46,6 +48,12 @@ LOCAL_SHARED_LIBRARIES := \
 # this is only needed for DDMS debugging
 LOCAL_SHARED_LIBRARIES += libdvm libandroid_runtime
 
+ifeq ($(BOARD_USES_LGE_HDMI_ROTATION),true)
+LOCAL_CFLAGS += -DUSE_LGE_HDMI
+LOCAL_SHARED_LIBRARIES += \
+	libnvdispmgr_d
+endif
+
 LOCAL_C_INCLUDES := \
 	$(call include-path-for, corecg graphics)
 
@@ -54,3 +62,4 @@ LOCAL_C_INCLUDES += hardware/libhardware/modules/gralloc
 LOCAL_MODULE:= libsurfaceflinger
 
 include $(BUILD_SHARED_LIBRARY)
+
