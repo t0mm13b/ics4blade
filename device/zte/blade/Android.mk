@@ -14,5 +14,5 @@
 
 ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),blade)
 #    include $(call all-named-subdir-makefiles, recovery libaudio libril libcamera libgralloc libcopybit libsensors BladeParts liblights)
-    include $(call all-named-subdir-makefiles, recovery libril libsensors liblights)
+    include $(call all-named-subdir-makefiles, recovery libril libgralloc libsensors liblights)
 endif
