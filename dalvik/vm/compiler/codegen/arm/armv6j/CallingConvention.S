@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef DALVIK_VM_COMPILER_CODEGEN_ARM_ARMV5TE_VFP_ARCHVARIANT_H_
-#define DALVIK_VM_COMPILER_CODEGEN_ARM_ARMV5TE_VFP_ARCHVARIANT_H_
-
-/* Create the TemplateOpcode enum */
-#define JIT_TEMPLATE(X) TEMPLATE_##X,
-enum TemplateOpcode {
-#include "../../../template/armv5te-vfp/TemplateOpList.h"
 /*
- * For example,
- *     TEMPLATE_CMP_LONG,
- *     TEMPLATE_RETURN,
- *     ...
+ * Save & restore for callee-save FP registers.
+ * On entry:
+ *    r0 : pointer to save area of JIT_CALLEE_SAVE_WORD_SIZE
  */
-    TEMPLATE_LAST_MARK,
-};
-#undef JIT_TEMPLATE
+    .text
+    .align 2
+    .global dvmJitCalleeSave
+    .type dvmJitCalleeSave, %function
+dvmJitCalleeSave:
+    bx     lr
 
-#endif  // DALVIK_VM_COMPILER_CODEGEN_ARM_ARMV5TE_VFP_ARCHVARIANT_H_
+    .global dvmJitCalleeRestore
+    .type dvmJitCalleeRestore, %function
+dvmJitCalleeRestore:
+    bx     lr
