@@ -2901,6 +2901,118 @@
       mmsport="8080"
       type="mms"
   />
+  <apn carrier="Velcom MMS"
+      mcc="257"
+      mnc="01"
+      apn="mms.velcom.by"
+      user="mms"
+      password="mms"
+      server="mms.velcom.by"
+      mmsc="http://mms.velcom.by/servlets/mms"
+      mmsproxy="10.200.15.15"
+      mmsport="8080"
+      type="mms"
+  />
+
+  <apn carrier="Velcom BY // Web Plus"
+      mcc="257"
+      mnc="01"
+      apn="plus.velcom.by"
+      user="plus"
+      password="plus"
+      type="default,supl"
+  />
+  <apn carrier="Velcom BY // Web 500"
+      mcc="257"
+      mnc="01"
+      apn="vmi.velcom.by"
+      user="vmi"
+      password="vmi"
+      type="default,supl"
+  />
+
+  <apn carrier="Velcom BY // Web"
+      mcc="257"
+      mnc="01"
+      apn="web.velcom.by"
+      user="web"
+      password="web"
+      type="default,supl"
+  />
+
+  <apn carrier="Velcom BY // Web Basic"
+      mcc="257"
+      mnc="01"
+      apn="web1.velcom.by"
+      user="web1"
+      password="web1"
+      type="default,supl"
+  />
+
+  <apn carrier="Velcom BY // Web 25"
+      mcc="257"
+      mnc="01"
+      apn="web2.velcom.by"
+      user="web2"
+      password="web2"
+      type="default,supl"
+  />
+
+  <apn carrier="Velcom BY // Web 250"
+      mcc="257"
+      mnc="01"
+      apn="web3.velcom.by"
+      user="web3"
+      password="web3"
+      type="default,supl"
+  />
+
+  <apn carrier="Velcom BY // Wap"
+      mcc="257"
+      mnc="01"
+      apn="wap.velcom.by"
+      user="wap"
+      password="wap"
+      type="default,supl"
+  />
+
+  <apn carrier="MTS BY"
+      mcc="257"
+      mnc="02"
+      apn="mts"
+      user="mts"
+      password="mts"
+      type="default,supl"
+  />
+
+  <apn carrier="MTS BY MMS"
+      mcc="257"
+      mnc="02"
+      apn="mts"
+      user="mts"
+      password="mts"
+      mmsc="http://mmsc"
+      mmsproxy="192.168.192.168"
+      mmsport="8080"
+      type="mms"
+  />
+
+  <apn carrier="Life:) // Internet"
+      mcc="257"
+      mnc="04"
+      apn="internet.life.com.by"
+      type="default,supl"
+  />
+
+  <apn carrier="Life:) // MMS"
+      mcc="257"
+      mnc="04"
+      apn="mms.life.com.by"
+      mmsc="http://mms.life.com.by/mmsc/"
+      mmsproxy="10.10.10.20"
+      mmsport="8080"
+      type="mms"
+  />
 
   <apn carrier="Plus Internet"
       mcc="260"
@@ -6902,7 +7014,8 @@
 
   <apn carrier="Reliance RCOM MMS"
       mcc="405"
-      mnc="03"
+      m
+      apn=nc="03"
       apn="rcommms"
       mmsc="http://mmsc.rcom.co.in/mms/"
       mmsproxy="10.239.221.5"
@@ -10481,7 +10594,8 @@
       mcc="502"
       mnc="16"
       apn="digimms"
-      user="mms"
+      u
+  /ser="mms"
       password="mms"
       mmsc="http://mms.digi.com.my/servlets/mms"
       mmsproxy="203.92.128.160"
