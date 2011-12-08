@@ -44,7 +44,10 @@ PRODUCT_PACKAGES += \
     Development \
     Term \
     gralloc.blade \
+    audio.a2dp.default \
     copybit.blade \
+    audio.primary.blade \
+    audio_policy.blade \
     gps.blade \
     lights.blade \
     sensors.blade \
@@ -88,10 +91,6 @@ PRODUCT_COPY_FILES += \
     device/zte/blade/prebuilt/hostapd:system/bin/hostapd \
     device/zte/blade/prebuilt/hostapd.conf:system/etc/wifi/hostapd.conf
     
-# GPS
-PRODUCT_COPY_FILES += \
-    device/zte/blade/gps.blade.so:system/lib/hw/gps.blade.so
-
 # Install the features available on this device.
 PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \

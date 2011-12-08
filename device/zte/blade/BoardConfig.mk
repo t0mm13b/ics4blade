@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +25,11 @@ LOCAL_PATH:= $(call my-dir)
 USE_CAMERA_STUB := false
 
 BOARD_HAS_FLIPPED_SCREEN := true
+COMMON_GLOBAL_CFLAGS += -DMISSING_EGL_EXTERNAL_IMAGE -DMISSING_EGL_PIXEL_FORMAT_YV12 -DMISSING_GRALLOC_BUFFERS
+TARGET_SPECIFIC_HEADER_PATH := device/zte/blade/include
 
 TARGET_NO_BOOTLOADER := true
-COMMON_GLOBAL_CFLAGS += -DMISSING_EGL_EXTERNAL_IMAGE -DMISSING_EGL_PIXEL_FORMAT_YV12 -DMISSING_GRALLOC_BUFFERS
+
 TARGET_PREBUILT_RECOVERY_KERNEL := device/zte/blade/recovery_kernel
 
 BOARD_KERNEL_CMDLINE := androidboot.hardware=blade console=null
@@ -49,8 +51,8 @@ BOARD_FM_DEVICE := si4708
 
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := AWEXT
-WIFI_DRIVER_MODULE_PATH := /system/wifi/ar6000.ko
-WIFI_DRIVER_MODULE_NAME := ar6000
+WIFI_DRIVER_MODULE_PATH     := /system/wifi/ar6000.ko
+WIFI_DRIVER_MODULE_NAME     := ar6000
 
 #WITH_JIT := true
 WITH_JIT := false
@@ -71,9 +73,9 @@ BOARD_GPS_LIBRARIES := libloc_api
 
 BOARD_USES_QCOM_HARDWARE := true
 BOARD_USES_QCOM_LIBS := true
-#BOARD_USES_QCOM_GPS := true
-#BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := blade
-#BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 1240
+BOARD_USES_QCOM_GPS := true
+BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := blade
+BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 1240
 BOARD_GPS_LIBRARIES := libloc
 BOARD_USES_GPSSHIM := true
 BOARD_GPS_NEEDS_XTRA := true
@@ -83,15 +85,14 @@ BOARD_KERNEL_BASE := 0x02600000
 #BOARD_PAGE_SIZE := 0x00000800
 
 TARGET_PROVIDES_LIBRIL := true
-#TARGET_PROVIDES_LIBAUDIO := true
-TARGET_PROVIDES_LIBAUDIO := false
+TARGET_PROVIDES_LIBAUDIO := true
 
 BOARD_CUSTOM_USB_CONTROLLER := ../../device/zte/blade/UsbController.cpp
 
 BOARD_UMS_LUNFILE := "/sys/devices/platform/msm_hsusb/gadget/lun0/file"
 
 # # cat /proc/mtd
-# dev: size erasesize name
+# dev:    size   erasesize  name
 # mtd0: 00480000 00020000 "recovery"
 # mtd1: 00480000 00020000 "boot"
 # mtd2: 00180000 00020000 "splash"
@@ -102,13 +103,11 @@ BOARD_UMS_LUNFILE := "/sys/devices/platform/msm_hsusb/gadget/lun0/file"
 # mtd7: 00180000 00020000 "persist"
 
 
-BOARD_BOOTIMAGE_PARTITION_SIZE := 0x00480000
+BOARD_BOOTIMAGE_PARTITION_SIZE     := 0x00480000
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x00480000
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x0cf80000
+BOARD_SYSTEMIMAGE_PARTITION_SIZE   := 0x0cf80000
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 0x0d020000
 BOARD_FLASH_BLOCK_SIZE := 131072
 
 BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/zte/blade/recovery/recovery_ui.c
 TARGET_RECOVERY_INITRC := device/zte/blade/recovery/recovery.rc
-
-

@@ -1,38 +1,31 @@
-ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),blade)
 
-# When zero we link against libmmcamera; when 1, we dlopen libmmcamera.
-DLOPEN_LIBMMCAMERA:=1
+BUILD_OLD_LIBCAMERA:=
+ifeq ($(BUILD_OLD_LIBCAMERA),true)
 
+# When zero we link against libqcamera; when 1, we dlopen libqcamera.
+DLOPEN_LIBQCAMERA:=1
+
+ifneq ($(BUILD_TINY_ANDROID),true)
 
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE_TAGS := optional
 
-LOCAL_PRELINK_MODULE := false
+LOCAL_CFLAGS:=-fno-short-enums
+LOCAL_CFLAGS+=-DDLOPEN_LIBQCAMERA=$(DLOPEN_LIBQCAMERA)
 
 LOCAL_SRC_FILES:= QualcommCameraHardware.cpp
 
-LOCAL_CFLAGS:= -DDLOPEN_LIBMMCAMERA=$(DLOPEN_LIBMMCAMERA)
-
-## Can be raised to 6 to improve framerate, at the cost of allocating
-## more ADSP memory. Use 0xa68000 as pool size in kernel to test
-LOCAL_CFLAGS+= -DNUM_PREVIEW_BUFFERS=4 -D_ANDROID_
-
-LOCAL_C_INCLUDES+= \
-    $(TARGET_OUT_HEADERS)/mm-camera \
-    $(TARGET_OUT_HEADERS)/mm-still/jpeg \
-
-LOCAL_SHARED_LIBRARIES:= libutils libui libcamera_client liblog libcutils
-
-LOCAL_SHARED_LIBRARIES+= libbinder
-ifneq ($(DLOPEN_LIBMMCAMERA),1)
+LOCAL_SHARED_LIBRARIES:= libutils libbinder libui liblog libcamera_client
+ifneq ($(DLOPEN_LIBQCAMERA),1)
 LOCAL_SHARED_LIBRARIES+= liboemcamera
 else
 LOCAL_SHARED_LIBRARIES+= libdl
 endif
 
 LOCAL_MODULE:= libcamera
+LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)
 
-endif
+endif # not BUILD_TINY_ANDROID
+endif # not BUILD_OLD_LIBCAMERA

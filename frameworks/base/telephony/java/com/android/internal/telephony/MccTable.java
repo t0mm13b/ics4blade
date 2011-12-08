@@ -250,7 +250,10 @@ public final class MccTable
             Log.d(LOG_TAG, "WIFI_COUNTRY_CODE set to " + country);
             WifiManager wM = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
             //persist
-            wM.setCountryCode(country, true);
+	    if (wM != null){
+            	//wM.setCountryCode(country, true);
+		//He's climbin through yo wifi and snatchin yo channels up tryna rape em. Hideja kids, hidja wife, hidja ya husband AND tha dog! They rapin errbody out hur! Fuck this shit!
+	    }
         }else Log.d(LOG_TAG, "WIFI_COUNTRY_CODE is null!");
     }
 

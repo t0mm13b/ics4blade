@@ -2692,6 +2692,11 @@ void GraphicPlane::setDisplayHardware(DisplayHardware *hw)
         case 90:
             displayOrientation = ISurfaceComposer::eOrientation90;
             break;
+    #ifdef HAS_FLIPPED_SCREEN
+        case 180:
+            displayOrientation = ISurfaceComposer::eOrientation180;
+            break;
+    #endif
         case 180:
             displayOrientation = ISurfaceComposer::eOrientation180;
             break;
@@ -2751,9 +2756,6 @@ status_t GraphicPlane::setOrientation(int orientation)
     mWidth = int(w);
     mHeight = int(h);
 
-#ifdef USE_LGE_HDMI
-    NvDispMgrAutoOrientation(orientation);
-#endif
     Transform orientationTransform;
     GraphicPlane::orientationToTransfrom(orientation, w, h,
             &orientationTransform);

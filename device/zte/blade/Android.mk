@@ -13,6 +13,9 @@
 # limitations under the License.
 
 ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),blade)
-#    include $(call all-named-subdir-makefiles, recovery libaudio libril libcamera libgralloc libcopybit libsensors BladeParts liblights)
-    include $(call all-named-subdir-makefiles, recovery libril libgralloc libsensors liblights)
+  include $(call all-named-subdir-makefiles, libaudio libril libcamera libgralloc libcopybit libsensors liblights)
+endif
+LOCAL_STATIC_LIBRARIES += A2dpAudioInterface
+ifeq ($(BOARD_HAVE_BLUETOOTH),true)
+  LOCAL_SHARED_LIBRARIES += audio.a2dp.default libbinder
 endif
