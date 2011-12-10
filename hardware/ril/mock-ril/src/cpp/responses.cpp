@@ -139,11 +139,11 @@ RIL_Errno RspGetSimStatus(
     ril_proto::RspGetSimStatus *rsp = new ril_proto::RspGetSimStatus();
     rsp->ParseFromArray(buffer->data(), buffer->length());
     const ril_proto::RilCardStatus& r = rsp->card_status();
-    RIL_CardStatus_v6 cardStatus;
+    RIL_CardStatus cardStatus;
     cardStatus.card_state = RIL_CardState(r.card_state());
     cardStatus.universal_pin_state = RIL_PinState(r.universal_pin_state());
     cardStatus.gsm_umts_subscription_app_index = r.gsm_umts_subscription_app_index();
-    cardStatus.ims_subscription_app_index = r.ims_subscription_app_index();
+//    cardStatus.ims_subscription_app_index = r.ims_subscription_app_index();
     cardStatus.num_applications = r.num_applications();
     for (int i = 0; i < cardStatus.num_applications; i++) {
        cardStatus.applications[i].app_type = RIL_AppType(r.applications(i).app_type());
@@ -239,17 +239,17 @@ RIL_Errno RspGetCurrentCalls (
 }
 
 
-void unmarshallRilSignalStrength(Buffer *buffer, RIL_SignalStrength_v6 *pSignalStrength) {
+void unmarshallRilSignalStrength(Buffer *buffer, RIL_SignalStrength *pSignalStrength) {
     // Retrieve response from response message
     ril_proto::RspSignalStrength *rsp = new ril_proto::RspSignalStrength();
     rsp->ParseFromArray(buffer->data(), buffer->length());
     const ril_proto::RILGWSignalStrength& gwST = rsp->gw_signalstrength();
     const ril_proto::RILCDMASignalStrength& cdmaST = rsp->cdma_signalstrength();
     const ril_proto::RILEVDOSignalStrength& evdoST = rsp->evdo_signalstrength();
-    const ril_proto::RILLTESignalStrength& lteST = rsp->lte_signalstrength();
+//    const ril_proto::RILLTESignalStrength& lteST = rsp->lte_signalstrength();
 
     // Copy the response message from response to format defined in ril.h
-    RIL_SignalStrength_v6 curSignalStrength;
+    RIL_SignalStrength curSignalStrength;
 
     curSignalStrength.GW_SignalStrength.signalStrength = gwST.signal_strength();
     curSignalStrength.GW_SignalStrength.bitErrorRate = gwST.bit_error_rate();
@@ -258,11 +258,11 @@ void unmarshallRilSignalStrength(Buffer *buffer, RIL_SignalStrength_v6 *pSignalS
     curSignalStrength.EVDO_SignalStrength.dbm = evdoST.dbm();
     curSignalStrength.EVDO_SignalStrength.ecio = evdoST.ecio();
     curSignalStrength.EVDO_SignalStrength.signalNoiseRatio = evdoST.signal_noise_ratio();
-    curSignalStrength.LTE_SignalStrength.signalStrength = lteST.signal_strength();
-    curSignalStrength.LTE_SignalStrength.rsrp = lteST.rsrp();
-    curSignalStrength.LTE_SignalStrength.rsrq = lteST.rsrq();
-    curSignalStrength.LTE_SignalStrength.rssnr = lteST.rssnr();
-    curSignalStrength.LTE_SignalStrength.cqi = lteST.cqi();
+//    curSignalStrength.LTE_SignalStrength.signalStrength = lteST.signal_strength();
+//    curSignalStrength.LTE_SignalStrength.rsrp = lteST.rsrp();
+//    curSignalStrength.LTE_SignalStrength.rsrq = lteST.rsrq();
+//    curSignalStrength.LTE_SignalStrength.rssnr = lteST.rssnr();
+//    curSignalStrength.LTE_SignalStrength.cqi = lteST.cqi();
 
     DBG("print response signal strength: ");
     DBG("gw signalstrength = %d", curSignalStrength.GW_SignalStrength.signalStrength);
@@ -272,11 +272,11 @@ void unmarshallRilSignalStrength(Buffer *buffer, RIL_SignalStrength_v6 *pSignalS
     DBG("evdo_dbm = %d", curSignalStrength.EVDO_SignalStrength.dbm);
     DBG("evdo_ecio = %d", curSignalStrength.EVDO_SignalStrength.ecio);
     DBG("evdo_signalNoiseRatio = %d", curSignalStrength.EVDO_SignalStrength.signalNoiseRatio);
-    DBG("lte_signalStrength = %d", curSignalStrength.LTE_SignalStrength.signalStrength);
-    DBG("lte_rsrp = %d", curSignalStrength.LTE_SignalStrength.rsrp);
-    DBG("lte_rsrq = %d", curSignalStrength.LTE_SignalStrength.rsrq);
-    DBG("lte_rssnr = %d", curSignalStrength.LTE_SignalStrength.rssnr);
-    DBG("lte_cqi = %d", curSignalStrength.LTE_SignalStrength.cqi);
+//    DBG("lte_signalStrength = %d", curSignalStrength.LTE_SignalStrength.signalStrength);
+//    DBG("lte_rsrp = %d", curSignalStrength.LTE_SignalStrength.rsrp);
+//    DBG("lte_rsrq = %d", curSignalStrength.LTE_SignalStrength.rsrq);
+//    DBG("lte_rssnr = %d", curSignalStrength.LTE_SignalStrength.rssnr);
+//    DBG("lte_cqi = %d", curSignalStrength.LTE_SignalStrength.cqi);
 }
 
 /**
@@ -297,7 +297,7 @@ RIL_Errno RspSignalStrength(
     const ril_proto::RILLTESignalStrength& lteST = rsp->lte_signalstrength();
 
     // Copy the response message from response to format defined in ril.h
-    RIL_SignalStrength_v6 curSignalStrength;
+    RIL_SignalStrength curSignalStrength;
     unmarshallRilSignalStrength(buffer, &curSignalStrength);
 
     // Complete the request
@@ -355,7 +355,7 @@ void UnsolRspSignalStrength(int cmd, Buffer* buffer) {
     const ril_proto::RILEVDOSignalStrength& evdoST = rsp->evdo_signalstrength();
 
     // Copy the response message from response to format defined in ril.h
-    RIL_SignalStrength_v6 curSignalStrength;
+    RIL_SignalStrength curSignalStrength;
     unmarshallRilSignalStrength(buffer, &curSignalStrength);
 
     s_rilenv->OnUnsolicitedResponse(cmd, &curSignalStrength, sizeof(curSignalStrength));
@@ -515,8 +515,8 @@ int responsesInit(v8::Handle<v8::Context> context) {
     rilRspConversionMap[RIL_REQUEST_CONFERENCE] = RspWithNoData;  // 16
     rilRspConversionMap[RIL_REQUEST_LAST_CALL_FAIL_CAUSE] = RspIntegers;  // 18
     rilRspConversionMap[RIL_REQUEST_SIGNAL_STRENGTH] = RspSignalStrength; // 19
-    rilRspConversionMap[RIL_REQUEST_VOICE_REGISTRATION_STATE] = RspStrings; // 20
-    rilRspConversionMap[RIL_REQUEST_DATA_REGISTRATION_STATE] = RspStrings; // 21
+//    rilRspConversionMap[RIL_REQUEST_VOICE_REGISTRATION_STATE] = RspStrings; // 20
+//    rilRspConversionMap[RIL_REQUEST_DATA_REGISTRATION_STATE] = RspStrings; // 21
     rilRspConversionMap[RIL_REQUEST_OPERATOR] = RspOperator; // 22
     rilRspConversionMap[RIL_REQUEST_GET_IMEI] = RspString; // 38
     rilRspConversionMap[RIL_REQUEST_GET_IMEISV] = RspString; // 39
