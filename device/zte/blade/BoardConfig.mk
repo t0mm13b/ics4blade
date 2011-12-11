@@ -23,7 +23,7 @@ LOCAL_PATH:= $(call my-dir)
 # variant, so that it gets overwritten by the parent (which goes
 # against the traditional rules of inheritance).
 USE_CAMERA_STUB := false
-
+WPA_SUPPLICANT_VERSION := VER_0_6_X
 BOARD_HAS_FLIPPED_SCREEN := true
 COMMON_GLOBAL_CFLAGS += -DMISSING_EGL_EXTERNAL_IMAGE -DMISSING_EGL_PIXEL_FORMAT_YV12 -DMISSING_GRALLOC_BUFFERS
 TARGET_SPECIFIC_HEADER_PATH := device/zte/blade/include
