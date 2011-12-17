@@ -121,6 +121,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     device/zte/blade/media_profiles.xml:system/etc/media_profiles.xml
 
+#libaudio
+PRODUCT_COPY_FILES += \
+    device/zte/blade/prebuilt/lib/hw/audio.primary.blade.so:system/lib/hw/audio.primary.blade.so
+
 PRODUCT_PROPERTY_OVERRIDES := \
     keyguard.no_require_sim=true \
     ro.com.android.dateformat=dd-MM-yyyy \
