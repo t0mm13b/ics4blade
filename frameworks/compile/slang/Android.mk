@@ -19,8 +19,7 @@ ifeq ($(TARGET_BUILD_APPS),)
 
 LOCAL_PATH := $(call my-dir)
 
-#local_cflags_for_slang := -Wno-sign-promo -Wall -Wno-unused-parameter -Werror
-local_cflags_for_slang := -Wno-sign-promo -Wall -Wno-unused-parameter
+local_cflags_for_slang := -Wno-sign-promo -Wall -Wno-unused-parameter -Werror
 ifneq ($(TARGET_BUILD_VARIANT),eng)
 local_cflags_for_slang += -D__DISABLE_ASSERTS
 endif
@@ -37,41 +36,41 @@ endif
 local_cflags_for_slang += -DRS_VERSION=$(RS_VERSION)
 
 static_libraries_needed_by_slang := \
-	libLLVMLinker   \
-	libLLVMipo	\
-	libLLVMBitWriter	\
-	libLLVMBitWriter_2_9  \
-	libLLVMBitReader	\
-	libLLVMARMCodeGen	\
-	libLLVMARMAsmPrinter	\
-	libLLVMARMInfo	\
-	libLLVMARMDesc  \
-	libLLVMX86CodeGen	\
-	libLLVMX86AsmPrinter	\
-	libLLVMX86Info	\
-	libLLVMX86Desc  \
-	libLLVMX86Utils	\
-	libLLVMAsmPrinter	\
-	libLLVMSelectionDAG	\
-	libLLVMCodeGen	\
-	libLLVMScalarOpts	\
-	libLLVMInstCombine	\
-	libLLVMTransformUtils	\
-	libLLVMInstrumentation	\
-	libLLVMipa	\
-	libLLVMAnalysis	\
-	libLLVMTarget	\
-	libLLVMMC	\
-	libLLVMMCParser	\
-	libLLVMCore	\
-	libclangParse	\
-	libclangSema	\
-	libclangAnalysis	\
-	libclangAST	\
-	libclangLex	\
-	libclangFrontend	\
-	libclangCodeGen	\
-	libclangBasic	\
+	libLLVMLinker \
+	libLLVMipo \
+	libLLVMBitWriter \
+	libLLVMBitWriter_2_9 \
+	libLLVMBitReader \
+	libLLVMARMCodeGen \
+	libLLVMARMAsmPrinter \
+	libLLVMARMInfo \
+	libLLVMARMDesc \
+	libLLVMX86CodeGen \
+	libLLVMX86Info \
+	libLLVMX86Desc \
+	libLLVMX86AsmPrinter \
+	libLLVMX86Utils \
+	libLLVMAsmPrinter \
+	libLLVMSelectionDAG \
+	libLLVMCodeGen \
+	libLLVMScalarOpts \
+	libLLVMInstCombine \
+	libLLVMTransformUtils \
+	libLLVMInstrumentation \
+	libLLVMipa \
+	libLLVMAnalysis \
+	libLLVMTarget \
+	libLLVMMC \
+	libLLVMMCParser \
+	libLLVMCore \
+	libclangParse \
+	libclangSema \
+	libclangAnalysis \
+	libclangCodeGen \
+	libclangAST \
+	libclangLex \
+	libclangFrontend \
+	libclangBasic \
 	libLLVMSupport
 
 # Static library libslang for host
@@ -104,6 +103,8 @@ LOCAL_SRC_FILES :=	\
 	slang_backend.cpp	\
 	slang_pragma_recorder.cpp	\
 	slang_diagnostic_buffer.cpp
+
+LOCAL_C_INCLUDES += frameworks/compile/libbcc/include
 
 LOCAL_LDLIBS := -ldl -lpthread
 
@@ -242,9 +243,9 @@ endif
 # For build RSCCOptions.inc from RSCCOptions.td
 intermediates := $(call local-intermediates-dir)
 LOCAL_GENERATED_SOURCES += $(intermediates)/RSCCOptions.inc
-$(intermediates)/RSCCOptions.inc: $(LOCAL_PATH)/RSCCOptions.td $(CLANG_ROOT_PATH)/include/clang/Driver/OptParser.td $(TBLGEN)
+$(intermediates)/RSCCOptions.inc: $(LOCAL_PATH)/RSCCOptions.td $(CLANG_ROOT_PATH)/include/clang/Driver/OptParser.td $(CLANG_TBLGEN)
 	@echo "Building Renderscript compiler (llvm-rs-cc) Option tables with tblgen"
-	$(call transform-host-td-to-out,opt-parser-defs)
+	$(call transform-host-clang-td-to-out,opt-parser-defs)
 
 include frameworks/compile/slang/RSSpec.mk
 include $(CLANG_HOST_BUILD_MK)
