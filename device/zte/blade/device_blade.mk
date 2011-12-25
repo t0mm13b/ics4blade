@@ -45,9 +45,9 @@ PRODUCT_PACKAGES += \
     Term \
     gralloc.blade \
     audio.a2dp.default \
-    copybit.blade \
     audio.primary.blade \
     audio_policy.blade \
+	copybit.blade \
     gps.blade \
     lights.blade \
     sensors.blade \
@@ -55,7 +55,6 @@ PRODUCT_PACKAGES += \
     libOmxVidEnc \
     FM \
     abtfilt \
-    BladeParts \
     prox_cal \
     dexpreopt
 
@@ -67,7 +66,9 @@ DISABLE_DEXPREOPT := false
 PRODUCT_COPY_FILES += \
     device/zte/blade/qwerty.kl:system/usr/keylayout/qwerty.kl \
 	device/zte/blade/blade_keypad.kl:system/usr/keylayout/blade_keypad.kl \
-	device/zte/blade/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc
+	device/zte/blade/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc \
+	device/zte/blade/apns-conf.xml:system/etc/apns-conf.xml \
+	device/zte/blade/spn-conf.xml:system/etc/spn-conf.xml
 
 # fstab
 PRODUCT_COPY_FILES += \
@@ -89,8 +90,10 @@ PRODUCT_COPY_FILES += \
     device/zte/blade/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     device/zte/blade/dhcpcd.conf:system/etc/dhcpcd/dhcpcd.conf \
     device/zte/blade/prebuilt/hostapd:system/bin/hostapd \
-    device/zte/blade/prebuilt/hostapd.conf:system/etc/wifi/hostapd.conf
-    
+    device/zte/blade/prebuilt/hostapd.conf:system/etc/wifi/hostapd.conf \
+	device/zte/blade/busybox:system/xbin/busybox 
+#	device/zte/blade/gps.blade.so:system/lib/hw/gps.blade.so
+
 # Install the features available on this device.
 PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
@@ -120,10 +123,6 @@ PRODUCT_COPY_FILES += \
 #Media profile
 PRODUCT_COPY_FILES += \
     device/zte/blade/media_profiles.xml:system/etc/media_profiles.xml
-
-#libaudio
-PRODUCT_COPY_FILES += \
-    device/zte/blade/prebuilt/lib/hw/audio.primary.blade.so:system/lib/hw/audio.primary.blade.so
 
 PRODUCT_PROPERTY_OVERRIDES := \
     keyguard.no_require_sim=true \
