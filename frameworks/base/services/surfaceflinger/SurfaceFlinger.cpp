@@ -71,6 +71,10 @@
 
 #define DISPLAY_COUNT       1
 
+#ifdef USE_LGE_HDMI
+extern "C" void NvDispMgrAutoOrientation(int rotation);
+#endif
+
 namespace android {
 // ---------------------------------------------------------------------------
 
@@ -1374,6 +1378,11 @@ sp<LayerScreenshot> SurfaceFlinger::createScreenshotSurface(
         uint32_t w, uint32_t h, uint32_t flags)
 {
     sp<LayerScreenshot> layer = new LayerScreenshot(this, display, client);
+    status_t err = layer->capture();
+    if (err != NO_ERROR) {
+        layer.clear();
+        LOGW("createScreenshotSurface failed (%s)", strerror(-err));
+    }
     return layer;
 }
 
@@ -2623,9 +2632,11 @@ void GraphicPlane::setDisplayHardware(DisplayHardware *hw)
         case 90:
             displayOrientation = ISurfaceComposer::eOrientation90;
             break;
-        case 180:
-            displayOrientation = ISurfaceComposer::eOrientation180;
-            break;
+#ifdef HAS_FLIPPED_SCREEN
+		case 180:
+			displayOrientation = ISurfaceComposer::eOrientation180;
+			break;
+#endif
         case 270:
             displayOrientation = ISurfaceComposer::eOrientation270;
             break;
@@ -2717,3 +2728,4 @@ EGLDisplay GraphicPlane::getEGLDisplay() const {
 // ---------------------------------------------------------------------------
 
 }; // namespace android
+
