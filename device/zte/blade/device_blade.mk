@@ -91,7 +91,7 @@ PRODUCT_COPY_FILES += \
     device/zte/blade/dhcpcd.conf:system/etc/dhcpcd/dhcpcd.conf \
     device/zte/blade/prebuilt/hostapd:system/bin/hostapd \
     device/zte/blade/prebuilt/hostapd.conf:system/etc/wifi/hostapd.conf \
-	device/zte/blade/busybox:system/xbin/busybox 
+#	device/zte/blade/busybox:system/xbin/busybox 
 #	device/zte/blade/gps.blade.so:system/lib/hw/gps.blade.so
 
 # Install the features available on this device.
