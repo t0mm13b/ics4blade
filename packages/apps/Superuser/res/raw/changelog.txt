@@ -1,0 +1,128 @@
+<html>
+  <head>
+    <style type="text/css">
+      div.title {
+        color: #a4c639;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 0.5em;
+        margin-bottom: 0.25em;
+        text-align:center }
+      div.subtitle {
+        color: #a4c639;
+        font-size: 0.9em;
+        text-align:center }
+      div.freetext {
+        color: #f0f0f0 }
+      div.list {
+        color: #c0c0c0 }
+      a {
+        color: #c0f0c0 }
+      span.elite {
+        color: #a4c639 }
+    </style>
+  </head>
+
+  <body>
+$ 41
+  %3.0.7
+  _2011-11-20
+    * Add a little bit of space between pages in the Home activity
+    * Better detection of su binary in binary updater that doesn't require busybox
+    * Better detection of root access in binary updater that doesn't require busybox
+    * Fix for apps that aren't remembered only showing in the log once
+    * Better package name detection
+    * Fix portrait prompt on ICS phones
+    * Swap allow/deny buttons on ICS to match the rest of the system
+    * Changed prompt to be more user friendly, and added an option to turn it off for advanced users
+    * <span class="elite">*</span> Fix for PIN being broken after restore. Create a new backup if you have PIN enabled, because restoring an old backup will turn PIN protection off.
+    * <span class="elite">*</span> Show toast message and reload preferences if only preferences are restored
+    * Updated translations from crowdin.net
+    * Fix bitwise operation for screen size (lilHermit)
+$ 40
+  %3.0.6
+  _2011-10-22
+    * Fix FC when remembering apps on some devices
+    * Updated binary with help from @HomerSP, check binary updater in preferences for latest version
+$ 39
+  %3.0.5
+  _2011-10-11
+    * Fix FCs that are happening when the user pressed back durring a binary update
+    * Only download busybox binary if necessary
+    * Fix FC when allowing and remembering apps
+    * Fix a problem with database IDs getting messed up
+$ 38
+  %3.0.4
+  _2011-10-09
+    * Remove the requirement for having the latest binary
+    * Add option to suppress the outdated binary option
+    * Add menu option to get elite in the main menu
+    * Don't show clear log in menu when logging is disalbled
+    * Clearer messages to the user as to why the binary updater can't update their binary
+    * More binary updater fixes
+$ 37
+  %3.0.2
+  _ 2011-10-06
+    * Fix FC when viewing app details on phones
+$ 36
+  %3.0.1
+  _ 2011-10-05
+    * New layout for tablets in portrait
+    * Don't show log if logging is disabled
+    * Binary updater fixes
+    * Prevent FC when uninstalling an app
+$ 35
+  %3.0
+  _ 2011-09-26
+    * Fixed layout on non-Honeycomb tablets
+    * Better handling of fragments on tablets
+    * Compatibility for Donut restored
+    * Fixed bug that caused unpredictable results when an app is remembered that was previously allowed
+    * <span class="elite">*</span> Backup/restore of apps and preferences
+    * Fix for Superuser thinking the binary is outdated when it's not
+    * Major speed increase for notifications and logging
+    * Show seconds in log defaults to off now
+    * Fix FC when trying to swipe left/right in HomeActivity
+    * Fix changelog version tracking, only show what's changed since the last time the changelog was displayed on launch
+    
+$ 34
+  % 3.0-beta4
+  _ 2011-08-21
+    * New layout for home activity with app list and log in the same place
+    * <span class="elite">*</span> Basic backup/restore capability for apps (will be expanded later)
+    * Fix a FC in the LogService
+    * Updated translations from crowdin.net, see <a href="http://androidsu.com/3-0-beta/translators">the translators page</a> for details
+    * Change the Changelog dialog so that Elite only features are more obvious
+  
+$ 33
+  % 3.0 beta3
+  _ 2011-08-02
+    * <span class="elite">*</span> New PIN activity for setting/changing/checking PIN
+    * <span class="elite">*</span> New NFC tag writer activity
+    * <span class="elite">*</span> Check PIN when toggling an app's permission if PIN is enabled
+    * Let the binary updater fail to remount /system as read-only, and alert the user about it
+    * When updating the su binary, put the new one in the same place as the old, if possible
+    * Fix for apps being removed from the allow list when they're updated
+    * <span class="elite">*</span> Use the PIN activity for setting the code for Ghost mode
+    * Changelog dialog thanks to <a href="https://code.google.com/p/android-change-log/">Karsten Priegnitz</a>
+    
+$ 32
+  % 3.0 beta2
+  _ 2011-06-26
+    * Fixed Honeycomb prompt
+    * Fixed Superuser3 being deleted on reboot on some ROMS
+    * <span class="elite">*</span> Keep Superuser out of Recent Apps when Ghost mode is enabled
+    * Automatic malicious app scanner
+    * <span class="elite">*</span> Star button in title bar now points to Elite's Featured Apps
+    * Better handling of database to reduce FCs
+    * Fixed bug causing some apps to not display right
+    * Fixed bug causing some apps to prompt again even if they're already remembered
+    
+$ 31
+  % 3.0 beta1
+  _ 2011-06-19
+    * Initial release of Superuser 3 Beta
+    * Massive overhaul to entire app from version 2x
+$ -1
+  </body>
+</html>
