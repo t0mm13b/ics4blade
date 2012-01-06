@@ -32,6 +32,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -87,13 +88,15 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
     }
 
     private Manifest mManifest;
-    private String mBusyboxPath = null;
+    private String mBusyboxPath = "";
     private Step mCurrentStep = Step.DOWNLOAD_MANIFEST;
     
     private ProgressBar mTitleProgress;
     private ProgressBar mProgressBar;
     private TextView mStatusText;
     private Button mActionButton;
+    
+    private UpdateTask mUpdateTask;
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -120,14 +123,23 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setListAdapter(new ConsoleAdapter(getActivity()));
-        getListAdapter().setNotifyOnChange(false);
         mProgressBar.setInterpolator(getActivity(), android.R.anim.accelerate_decelerate_interpolator);
-        new UpdateTask().execute();
+        mUpdateTask = new UpdateTask();
+        mUpdateTask.execute();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mUpdateTask != null) {
+            mUpdateTask.cancel(false);
+        }
     }
 
     @Override
     public void onClick(View view) {
-            new UpdateTask().execute();
+            mUpdateTask = new UpdateTask();
+            mUpdateTask.execute();
     }
 
     @Override
@@ -145,6 +157,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
         public static final int STATUS_FINISHED_FAIL_REMOUNT = R.string.updater_failed_remount;
         public static final int STATUS_FINISHED_FAIL_SBIN =
                 R.string.updater_bad_install_location_explained;
+        public static final int STATUS_CANCELLED = 8;
 
         @Override
         protected void onPreExecute() {
@@ -162,6 +175,9 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
             switch (mCurrentStep) {
             case DOWNLOAD_MANIFEST:
                 progressTotal = 4;
+                if (isCancelled()) {
+                    return STATUS_CANCELLED;
+                }
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
                         R.string.updater_step_download_manifest);
@@ -176,6 +192,9 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                 // Parse manifest
                 // TODO: Actually parse the manifest here, as of now it's being
                 //       done at download time.
+                if (isCancelled()) {
+                    return STATUS_CANCELLED;
+                }
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
                         R.string.updater_step_parse_manifest);
@@ -188,6 +207,9 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                         R.string.updater_ok, CONSOLE_GREEN);
                 
                 // Display the latest version
+                if (isCancelled()) {
+                    return STATUS_CANCELLED;
+                }
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
                         R.string.updater_step_latest_version);
@@ -200,6 +222,9 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                 }
                 
                 // Check the currently installed version
+                if (isCancelled()) {
+                    return STATUS_CANCELLED;
+                }
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
                         R.string.updater_step_check_installed_version);
@@ -226,7 +251,10 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                 // needs to be addressed.
                 boolean fixDb = (Util.getSuVersionCode() == 0);
                 if (fixDb) {
-                    progressTotal = 16;
+                    progressTotal = 14;
+                    if (isCancelled()) {
+                        return STATUS_CANCELLED;
+                    }
                     progressStep = 1;
                     publishProgress(progressTotal, progressStep - 1, progressStep,
                             R.string.updater_step_fix_db);
@@ -257,54 +285,76 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                     publishProgress(progressTotal, progressStep, progressStep,
                             R.string.updater_ok, CONSOLE_GREEN);
                 } else {
-                    progressTotal = 15;
+                    progressTotal = 13;
                     progressStep = 0;
                 }
 
-                // Download custom tiny busybox
-                progressStep++;
+                // Check for busybox
+                if (isCancelled()) {
+                    return STATUS_CANCELLED;
+                }
                 publishProgress(progressTotal, progressStep - 1, progressStep,
-                        R.string.updater_step_download_busybox);
-                if (downloadFile(mManifest.busyboxUrl, "busybox")) {
-                    try {
-//                        Process process = Runtime.getRuntime().exec(new String[] { "chmod", "755", mBusyboxPath });
-                        Process process = new ProcessBuilder()
-                                .command("chmod", "755", mBusyboxPath)
-                                .redirectErrorStream(true).start();
-                        Log.d(TAG, "chmod 755 " + mBusyboxPath);
-                        process.waitFor();
-                        process.destroy();
-                    } catch (IOException e) {
-                        Log.e(TAG, "Failed to set busybox to executable", e);
+                        R.string.updater_step_find_busybox);
+                if (findBusybox()) {
+                    publishProgress(progressTotal, progressStep, progressStep,
+                            R.string.updater_ok, CONSOLE_GREEN);
+                } else {
+                    publishProgress(progressTotal, progressStep, progressStep,
+                            R.string.updater_not_found, CONSOLE_RED);
+                    progressTotal += 2;
+                    // Download custom tiny busybox
+                    if (isCancelled()) {
+                        return STATUS_CANCELLED;
+                    }
+                    progressStep++;
+                    publishProgress(progressTotal, progressStep - 1, progressStep,
+                            R.string.updater_step_download_busybox);
+                    if (downloadFile(mManifest.busyboxUrl, "busybox")) {
+                        try {
+                            Process process = new ProcessBuilder()
+                            .command("chmod", "755", mBusyboxPath)
+                            .redirectErrorStream(true).start();
+                            Log.d(TAG, "chmod 755 " + mBusyboxPath);
+                            process.waitFor();
+                            process.destroy();
+                        } catch (IOException e) {
+                            Log.e(TAG, "Failed to set busybox to executable", e);
+                            publishProgress(progressTotal, progressStep - 1, progressStep,
+                                    R.string.updater_fail, CONSOLE_RED);
+                            return STATUS_FINISHED_FAIL;
+                        } catch (InterruptedException e) {
+                            Log.w(TAG, "Process interrupted", e);
+                        }
+                        publishProgress(progressTotal, progressStep, progressStep,
+                                R.string.updater_ok, CONSOLE_GREEN);
+                    } else {
+                        Log.e(TAG, "Failed to download busybox");
+                        publishProgress(progressTotal, progressStep - 1, progressStep,
+                                R.string.updater_fail);
+                        return STATUS_FINISHED_FAIL;
+                    }
+
+                    // Verify md5sum of busybox
+                    if (isCancelled()) {
+                        return STATUS_CANCELLED;
+                    }
+                    progressStep++;
+                    publishProgress(progressTotal, progressStep - 1, progressStep,
+                            R.string.updater_step_check_md5sum);
+                    if (verifyFile(mBusyboxPath, mManifest.busyboxMd5)) {
+                        publishProgress(progressTotal, progressStep, progressStep,
+                                R.string.updater_ok, CONSOLE_GREEN);
+                    } else {
                         publishProgress(progressTotal, progressStep - 1, progressStep,
                                 R.string.updater_fail, CONSOLE_RED);
                         return STATUS_FINISHED_FAIL;
-                    } catch (InterruptedException e) {
-                        Log.w(TAG, "Process interrupted", e);
                     }
-                    publishProgress(progressTotal, progressStep, progressStep,
-                            R.string.updater_ok, CONSOLE_GREEN);
-                } else {
-                    Log.e(TAG, "Failed to download busybox");
-                    publishProgress(progressTotal, progressStep - 1, progressStep,
-                            R.string.updater_fail);
-                    return STATUS_FINISHED_FAIL;
                 }
 
-                // Verify md5sum of busybox
-                progressStep++;
-                publishProgress(progressTotal, progressStep - 1, progressStep,
-                        R.string.updater_step_check_md5sum);
-                if (verifyFile(mBusyboxPath, mManifest.busyboxMd5)) {
-                    publishProgress(progressTotal, progressStep, progressStep,
-                            R.string.updater_ok, CONSOLE_GREEN);
-                } else {
-                    publishProgress(progressTotal, progressStep - 1, progressStep,
-                            R.string.updater_fail, CONSOLE_RED);
-                    return STATUS_FINISHED_FAIL;
-                }
-                
                 // Check where the current su binary is installed
+                if (isCancelled()) {
+                    return STATUS_CANCELLED;
+                }
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
                         R.string.updater_step_check_installed_path);
@@ -326,8 +376,11 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
 
                 publishProgress(progressTotal, progressStep, progressStep,
                         installedSu, CONSOLE_GREEN);
-                
+
                 // Download new su binary
+                if (isCancelled()) {
+                    return STATUS_CANCELLED;
+                }
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
                         R.string.updater_step_download_su);
@@ -341,8 +394,11 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                             R.string.updater_fail, CONSOLE_RED);
                     return STATUS_FINISHED_FAIL;
                 }
-                
+
                 // Verify md5sum of su
+                if (isCancelled()) {
+                    return STATUS_CANCELLED;
+                }
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
                         R.string.updater_step_check_md5sum);
@@ -354,7 +410,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                             R.string.updater_fail, CONSOLE_RED);
                     return STATUS_FINISHED_FAIL;
                 }
-                
+
                 Process process = null;
                 try { // Just use one try/catch for all the root commands
                     // Get root access
@@ -365,23 +421,17 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                     DataOutputStream os = new DataOutputStream(process.getOutputStream());
                     BufferedReader is = new BufferedReader(new InputStreamReader(
                             new DataInputStream(process.getInputStream())), 64);
-                    os.writeBytes("id\n");
-                    String inLine = is.readLine();
-                    if (inLine == null) {
-                        publishProgress(progressTotal, progressStep - 1, progressStep,
-                                R.string.updater_fail, CONSOLE_RED);
-                        return STATUS_FINISHED_FAIL;
-                    }
-                    Pattern pattern = Pattern.compile("uid=([\\d]+)");
-                    Matcher matcher = pattern.matcher(inLine);
-                    if (!matcher.find() || !matcher.group(1).equals("0")) {
-                        publishProgress(progressTotal, progressStep - 1, progressStep,
+
+                    String inLine = executeCommand(os, is, 1000, mBusyboxPath, "touch /data/sutest &&",
+                            mBusyboxPath, "echo YEAH");
+                    if (inLine == null || !inLine.equals("YEAH")) {
+                        publishProgress(progressTotal, progressStep -1, progressStep,
                                 R.string.updater_fail, CONSOLE_RED);
                         return STATUS_FINISHED_FAIL;
                     }
                     publishProgress(progressTotal, progressStep, progressStep,
                             R.string.updater_ok, CONSOLE_GREEN);
-                    
+
                     // Remount system partition
                     progressStep++;
                     publishProgress(progressTotal, progressStep - 1, progressStep,
@@ -396,7 +446,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                     }
                     publishProgress(progressTotal, progressStep, progressStep,
                             R.string.updater_ok, CONSOLE_GREEN);
-                    
+
                     // Copy su to /system. Put it in here first so it's on the system
                     // partition then use an atomic move to make sure we don't get
                     // corrupted
@@ -412,7 +462,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                     }
                     publishProgress(progressTotal, progressStep, progressStep,
                             R.string.updater_ok, CONSOLE_GREEN);
-                    
+
                     // Check su md5sum again. Do it often to make sure everything is
                     // going good.
                     progressStep++;
@@ -453,7 +503,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                     }
                     publishProgress(progressTotal, progressStep, progressStep,
                             R.string.updater_ok, CONSOLE_GREEN);
-                    
+
                     // Check su md5sum again. Last time, I promise
                     progressStep++;
                     publishProgress(progressTotal, progressStep - 1, progressStep,
@@ -467,7 +517,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                     }
                     publishProgress(progressTotal, progressStep, progressStep,
                             R.string.updater_ok, CONSOLE_GREEN);
-                    
+
                     // Remount system partition
                     progressStep++;
                     publishProgress(progressTotal, progressStep - 1, progressStep,
@@ -480,9 +530,10 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                                 R.string.updater_fail, CONSOLE_RED);
                         publishProgress(progressTotal, progressStep, progressStep,
                                 R.string.updater_remount_ro_failed);
+                    } else {
+                        publishProgress(progressTotal, progressStep, progressStep,
+                                R.string.updater_ok, CONSOLE_GREEN);
                     }
-                    publishProgress(progressTotal, progressStep, progressStep,
-                            R.string.updater_ok, CONSOLE_GREEN);
 
                     os.writeBytes("exit\n");
                 } catch (IOException e) {
@@ -490,7 +541,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                 } finally {
                     process.destroy();
                 }
-                
+
                 // Verify the proper version is installed.
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
@@ -511,7 +562,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                     mCurrentStep = Step.DOWNLOAD_BUSYBOX;
                     return STATUS_FINISHED_FAIL;
                 }
-                
+
                 // Clean up
                 progressStep++;
                 publishProgress(progressTotal, progressStep - 1, progressStep,
@@ -525,12 +576,15 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
                         R.string.updater_ok, CONSOLE_GREEN);
                 return STATUS_FINISHED_SUCCESSFUL;
             }
-            
+
             return -1;
         }
 
         @Override
         protected void onProgressUpdate(Object... values) {
+            if (isCancelled()) {
+                return;
+            }
             getListAdapter().notifyDataSetChanged();
             mProgressBar.setMax((Integer)values[0]);
             mProgressBar.setProgress((Integer)values[1]);
@@ -591,6 +645,58 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
             }
         }
 
+        @Override
+        protected void onCancelled() {
+            Log.d(TAG, "UpdaterTask cancelled");
+        }
+
+        private boolean downloadFile(String urlStr, String localName) {
+            BufferedInputStream bis = null;
+            
+            try {
+                URL url = new URL(urlStr);
+                
+                URLConnection urlCon = url.openConnection();
+                bis = new BufferedInputStream(urlCon.getInputStream());
+
+                ByteArrayBuffer baf = new ByteArrayBuffer(50);
+                int current = 0;
+                while (((current = bis.read()) != -1)) {
+                    baf.append((byte) current);
+                    if (isCancelled()) {
+                        return false;
+                    }
+                }
+                bis.close();
+                
+                if (isCancelled()) {
+                    return false;
+                } else if (localName.equals("manifest")) {
+                    try {
+                        mManifest = new Manifest();
+                        return mManifest.populate(new JSONObject(new String(baf.toByteArray())));
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Malformed manifest file", e);
+                        return false;
+                    }
+                } else {
+                    FileOutputStream outFileStream = getActivity().openFileOutput(localName, 0);
+                    outFileStream.write(baf.toByteArray());
+                    outFileStream.close();
+                    if (localName.equals("busybox")) {
+                        mBusyboxPath = getActivity().getFilesDir().getAbsolutePath().concat("/busybox");
+                    }
+                }
+
+            } catch (MalformedURLException e) {
+                Log.e(TAG, "Bad URL: " + urlStr, e);
+                return false;
+            } catch (IOException e) {
+                Log.e(TAG, "Problem downloading file: " + localName, e);
+                return false;
+            }
+            return true;
+        }
     }
     
     private void addConsoleEntry(int res) {
@@ -608,48 +714,6 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
         entry.statusColor = color;
     }
 
-    private boolean downloadFile(String urlStr, String localName) {
-        BufferedInputStream bis = null;
-        
-        try {
-            URL url = new URL(urlStr);
-            
-            URLConnection urlCon = url.openConnection();
-            bis = new BufferedInputStream(urlCon.getInputStream());
-
-            ByteArrayBuffer baf = new ByteArrayBuffer(50);
-            int current = 0;
-            while ((current = bis.read()) != -1) {
-                baf.append((byte) current);
-            }
-            bis.close();
-            
-            if (localName.equals("manifest")) {
-                try {
-                    mManifest = new Manifest();
-                    return mManifest.populate(new JSONObject(new String(baf.toByteArray())));
-                } catch (JSONException e) {
-                    Log.e(TAG, "Malformed manifest file", e);
-                    return false;
-                }
-            } else {
-                FileOutputStream outFileStream = getActivity().openFileOutput(localName, 0);
-                outFileStream.write(baf.toByteArray());
-                outFileStream.close();
-                if (localName.equals("busybox")) {
-                    mBusyboxPath = getActivity().getFilesDir().getAbsolutePath().concat("/busybox");
-                }
-            }
-
-        } catch (MalformedURLException e) {
-            Log.e(TAG, "Bad URL: " + urlStr, e);
-            return false;
-        } catch (IOException e) {
-            Log.e(TAG, "Problem downloading file: " + localName, e);
-            return false;
-        }
-        return true;
-    }
     
     private boolean verifyFile(String path, String md5sum) {
         if (mBusyboxPath == null) {
@@ -695,34 +759,20 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
         }
         return true;
     }
-    
+
     private String whichSu() {
-        if (mBusyboxPath == null) {
-            Log.e(TAG, "Busybox not present");
-            return null;
-        }
-        
-        Process process = null;
-        try {
-            String cmd = mBusyboxPath + " which su";
-            Log.d(TAG, cmd);
-            process = Runtime.getRuntime().exec(cmd);
-            BufferedReader is = new BufferedReader(new InputStreamReader(
-                    new DataInputStream(process.getInputStream())), 64);
-            for (int i = 0; i < 200; i++) {
-                if (is.ready()) break;
+        for (String s : System.getenv("PATH").split(":")) {
+            File su = new File(s + "/su");
+            if (su.exists() && su.isFile()) {
                 try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {
-                    Log.w(TAG, "Sleep timer got interrupted...");
+                    if (su.getAbsolutePath().equals(su.getCanonicalPath())) {
+                        return su.getAbsolutePath();
+                    }
+                } catch (IOException e) {
+                    // If we get an exception here, it's probably not the right file,
+                    // Log it and move on
+                    Log.w(TAG, "IOException while finding canonical path of " + su.getAbsolutePath(), e);
                 }
-            }
-            return is.readLine();
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to find su binary");
-        } finally {
-            if (process != null) {
-                process.destroy();
             }
         }
         return null;
@@ -730,6 +780,11 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
     
     private String executeCommand(DataOutputStream os, BufferedReader is, String... commands)
             throws IOException {
+        return executeCommand(os, is, 200, commands);
+    }
+    
+    private String executeCommand(DataOutputStream os, BufferedReader is, int timeout,
+            String... commands) throws IOException {
         if (commands.length == 0) return null;
         StringBuilder command = new StringBuilder();
         for (String s : commands) {
@@ -739,7 +794,7 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
         Log.d(TAG, command.toString());
         os.writeBytes(command.toString());
         if (is != null) {
-            for (int i = 0; i < 200; i++) {
+            for (int i = 0; i < timeout; i++) {
                 if (is.ready()) break;
                 try {
                     Thread.sleep(5);
@@ -756,17 +811,23 @@ public class UpdaterFragment extends ListFragment implements OnClickListener {
             return null;
         }
     }
+    
+    private boolean findBusybox() {
+        String path = System.getenv("PATH");
+        for (String s : path.split(":")) {
+            File file = new File(s, "busybox");
+            if (file.exists()) {
+                mBusyboxPath = file.getAbsolutePath();
+                return true;
+            }
+        }
+        return false;
+    }
 
     private class ConsoleAdapter extends ArrayAdapter<ConsoleEntry> {
         
         ConsoleAdapter(Context context) {
             super(context, R.layout.console_item);
-        }
-        
-        @Override
-        public void notifyDataSetChanged() {
-            super.notifyDataSetChanged();
-            this.setNotifyOnChange(false);
         }
 
         @Override

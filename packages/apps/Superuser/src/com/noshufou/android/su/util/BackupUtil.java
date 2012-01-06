@@ -1,10 +1,7 @@
 package com.noshufou.android.su.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Map;
+import com.noshufou.android.su.preferences.Preferences;
+import com.noshufou.android.su.provider.PermissionsProvider.Apps;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -22,7 +19,11 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Xml;
 
-import com.noshufou.android.su.provider.PermissionsProvider.Apps;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Map;
 
 public class BackupUtil {
     private static final String TAG = "Su.BackupUtil";
@@ -115,7 +116,7 @@ public class BackupUtil {
         serializer.startTag("", "prefs");
         for (String key: prefs.keySet()) {
             String type = "unknown";
-            if (!key.startsWith("pref_")) {
+            if (!key.startsWith("pref_") && !key.equals("pin")) {
                 continue;
             }
             
@@ -145,7 +146,7 @@ public class BackupUtil {
     public static int restoreBackup(Context context) {
         XmlPullParser parser = Xml.newPullParser();
         FileInputStream file = null;
-        int appsRestored = -1;
+        int appsRestored = 0;
         try {
             file = new FileInputStream(
                     new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -173,7 +174,7 @@ public class BackupUtil {
             Log.e(TAG, "Error restoring backup", e);
             return -1;
        }
-        return appsRestored;
+       return appsRestored;
     }
 
     private static int restoreApps(Context context, XmlPullParser parser)
@@ -209,8 +210,10 @@ public class BackupUtil {
     
     private static void restorePrefs(Context context, XmlPullParser parser)
             throws XmlPullParserException, IOException {
-        SharedPreferences.Editor editor =
-            PreferenceManager.getDefaultSharedPreferences(context).edit();
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+
         editor.clear();
         int eventType = parser.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT &&
@@ -233,5 +236,9 @@ public class BackupUtil {
             eventType = parser.next();
         }
         editor.commit();
+
+        if (prefs.getBoolean(Preferences.PIN, false) && !prefs.contains("pin")) {
+            prefs.edit().putBoolean(Preferences.PIN, false).commit();
+        }
     }
 }

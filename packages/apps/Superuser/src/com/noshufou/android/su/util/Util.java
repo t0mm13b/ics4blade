@@ -15,16 +15,13 @@
  ******************************************************************************/
 package com.noshufou.android.su.util;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
+import com.noshufou.android.su.HomeActivity;
+import com.noshufou.android.su.R;
+import com.noshufou.android.su.UpdaterActivity;
+import com.noshufou.android.su.UpdaterFragment;
+import com.noshufou.android.su.preferences.Preferences;
+import com.noshufou.android.su.preferences.PreferencesActivity;
+import com.noshufou.android.su.service.PermissionsDbService;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -42,12 +39,17 @@ import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.util.Log;
 
-import com.noshufou.android.su.HomeActivity;
-import com.noshufou.android.su.R;
-import com.noshufou.android.su.UpdaterActivity;
-import com.noshufou.android.su.UpdaterFragment;
-import com.noshufou.android.su.preferences.Preferences;
-import com.noshufou.android.su.preferences.PreferencesActivity;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class Util {
     private static final String TAG = "Su.Util";
@@ -56,8 +58,48 @@ public class Util {
     public static final int MALICIOUS_UID = 1;
     public static final int MALICIOUS_RESPOND = 2;
     public static final int MALICIOUS_PROVIDER_WRITE = 3;
+    
+    private static final HashMap<Integer, String> sSystemUids = new HashMap<Integer, String>();
+    static {
+        sSystemUids.put(0, "root");
+        sSystemUids.put(1000, "system");
+        sSystemUids.put(1001, "radio");
+        sSystemUids.put(1002, "bluetooth");
+        sSystemUids.put(1003, "graphics");
+        sSystemUids.put(1004, "input");
+        sSystemUids.put(1005, "audio");
+        sSystemUids.put(1006, "camera");
+        sSystemUids.put(1007, "log");
+        sSystemUids.put(1008, "compass");
+        sSystemUids.put(1009, "mount");
+        sSystemUids.put(1010, "wifi");
+        sSystemUids.put(1011, "adb");
+        sSystemUids.put(1012, "install");
+        sSystemUids.put(1013, "media");
+        sSystemUids.put(1014, "dhcp");
+        sSystemUids.put(1015, "sdcard_rw");
+        sSystemUids.put(1016, "vpn");
+        sSystemUids.put(1017, "keystore");
+        sSystemUids.put(1018, "usb");
+        sSystemUids.put(1021, "gps");
+        sSystemUids.put(1025, "nfc");
+        sSystemUids.put(2000, "shell");
+        sSystemUids.put(2001, "cache");
+        sSystemUids.put(2002, "diag");
+        sSystemUids.put(3001, "net_bt_admin");
+        sSystemUids.put(3002, "net_bt");
+        sSystemUids.put(3003, "inet");
+        sSystemUids.put(3004, "net_raw");
+        sSystemUids.put(3005, "net_admin");
+        sSystemUids.put(9998, "misc");
+        sSystemUids.put(9999, "nobody");
+    }
 
     public static String getAppName(Context c, int uid, boolean withUid) {
+        if (sSystemUids.containsKey(uid)) {
+            return sSystemUids.get(uid);
+        }
+
         PackageManager pm = c.getPackageManager();
         String appName = "Unknown";
         String[] packages = pm.getPackagesForUid(uid);
@@ -91,6 +133,10 @@ public class Util {
     }
 
     public static String getAppPackage(Context c, int uid) {
+        if (sSystemUids.containsKey(uid)) {
+            return sSystemUids.get(uid);
+        }
+
         PackageManager pm = c.getPackageManager();
         String[] packages = pm.getPackagesForUid(uid);
         String appPackage = "unknown";
@@ -140,7 +186,7 @@ public class Util {
                 { R.drawable.perm_deny_dot, R.drawable.perm_allow_dot },
                 { R.drawable.perm_deny_emo, R.drawable.perm_allow_emo }
         };
-        
+
         String iconTypeString = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(Preferences.STATUS_ICON_TYPE, "emote");
         int statusIconType = 1;
@@ -332,7 +378,7 @@ public class Util {
     public static String formatDateTime(Context context, long date) {
         return formatDate(context, date) + " " + formatTime(context, date);
     }
-    
+
     public static boolean elitePresent(Context context, boolean versionCheck, int minVersion) {
         PackageManager pm = context.getPackageManager();
         int sigs = pm.checkSignatures("com.noshufou.android.su", "com.noshufou.android.su.elite");
@@ -356,7 +402,7 @@ public class Util {
             }
         }
     }
-    
+
     public static void launchPreferences(Context context) {
 //        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
             context.startActivity(new Intent(context, PreferencesActivity.class));
@@ -364,7 +410,7 @@ public class Util {
 //            context.startActivity(new Intent(context, PreferencesActivityHC.class));
 //        }
     }
-    
+
     public static String getHash(String pin) {
         MessageDigest digest;
         try {
@@ -383,13 +429,13 @@ public class Util {
             return pin;
         }
     }
-    
+
     public static boolean checkPin(Context context, String pin) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String setPin = prefs.getString("pin", "");
         return getHash(pin).equals(setPin);
     }
-    
+
     public static void toggleAppIcon(Context context, boolean newState) {
         ComponentName componentName = new ComponentName("com.noshufou.android.su",
                 "com.noshufou.android.su.Su");
@@ -398,12 +444,12 @@ public class Util {
                     PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP);
     }
-    
+
     public static List<String> findMaliciousPackages(Context context) {
         List<String> maliciousApps = new ArrayList<String>();
         List<PackageInfo> installedApps = context.getPackageManager()
                 .getInstalledPackages(PackageManager.GET_PERMISSIONS);
-        
+
         for (PackageInfo pkg : installedApps) {
             int result = isPackageMalicious(context, pkg);
             if (result != 0) {
@@ -412,19 +458,19 @@ public class Util {
         }
         return maliciousApps;
     }
-    
+
     public static int isPackageMalicious(Context context, PackageInfo packageInfo) {
         // If the package being checked is this one, it's not malicious
         if (packageInfo.packageName.equals(context.getPackageName())) {
             return MALICIOUS_NOT;
         }
-        
+
         // If the package being checked shares a UID with Superuser, it's
         // probably malicious
         if (packageInfo.applicationInfo.uid == context.getApplicationInfo().uid) {
             return MALICIOUS_UID;
         }
-        
+
         // Finally we check for any permissions that other apps should not have.
         if (packageInfo.requestedPermissions != null) {
             String[] bannedPermissions = new String[] { 
@@ -442,10 +488,10 @@ public class Util {
                 }
             }
         }
-        
+
         return MALICIOUS_NOT;
     }
-    
+
     public static void showOutdatedNotification(Context context) {
         if (PreferenceManager.getDefaultSharedPreferences(context)
                 .getBoolean(Preferences.OUTDATED_NOTIFICATION, true)) {
@@ -460,5 +506,13 @@ public class Util {
             notification.flags |= Notification.FLAG_AUTO_CANCEL;
             nm.notify(UpdaterFragment.NOTIFICATION_ID, notification);
         }
+    }
+
+    public static void updatePermissionsDb(Context context) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+                .putBoolean("permissions_dirty", true).commit();
+        Log.d(TAG, "Start PermissionsDbService");
+        Intent intent = new Intent(context, PermissionsDbService.class);
+        context.startService(intent);
     }
 }
