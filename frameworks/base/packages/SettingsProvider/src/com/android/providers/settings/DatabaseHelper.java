@@ -1436,9 +1436,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private void loadDefaultAnimationSettings(SQLiteStatement stmt) {
         loadFractionSetting(stmt, Settings.System.WINDOW_ANIMATION_SCALE,
-                R.fraction.def_window_animation_scale, 1);
+                R.fraction.def_window_animation_scale, 0);
         loadFractionSetting(stmt, Settings.System.TRANSITION_ANIMATION_SCALE,
-                R.fraction.def_window_transition_scale, 1);
+                R.fraction.def_window_transition_scale, 0);
     }
 
     private void loadDefaultHapticSettings(SQLiteStatement stmt) {
