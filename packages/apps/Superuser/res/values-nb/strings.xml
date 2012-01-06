@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Superuser</string>
+    <string name="app_name_request">Superuser-forespørsel</string>
+
+    <string name="permlab_respond">Svar på Superuser-forespørsel</string>
+    <string name="permdesc_respond">Tillater applikasjonen å svare på forespørsler om superuser-tilgang.</string>
+
+    <string name="new_su">Ny versjon av su</string>
+    <string name="new_su_msg">En ny versjon av binærfilen su er tilgjengelig. Trykk \'Ok\' for å prøve å installere denne automatisk.</string>
+    <string name="su_updated">su-binærfil oppdatert</string>
+    <string name="su_not_updated_title">Automatisk oppdatering mislykket</string>
+    <string name="su_not_updated">En feil oppstod og su ble ikke oppdatert. En zip-fil (su-2.3.1-bin-signed.zip) har blitt plassert på minnekortet, vennligst start opp i recoverymodus og flash den for å oppdatere su-binærfilen.</string>
+
+    <string name="tab_apps">Apps</string>
+    <string name="tab_log">Logg</string>
+    <string name="tab_settings">Innstillinger</string>
+
+    <string name="allow">Tillat</string>
+    <string name="forget">Glem</string>
+    <string name="cancel">Avbryt</string>
+    <string name="deny">Avslå</string>
+    <string name="remember">Husk</string>
+    <string name="uid">(uid: %d)</string>
+    <string name="request">%1$s som %2$s (uid: %3$d)</string>
+    <string name="unknown">Ukjent navn</string>
+
+    <string name="allowed">Tillatt</string>
+    <string name="denied">Avslått</string>
+    <string name="created">Opprettet</string>
+    <string name="toggled">Vekslet</string>
+
+    <string name="no_log_data">Ingen loggdata</string>
+    <string name="last_allowed">Siste tillatte:</string>
+    <string name="last_denied">Siste avslåtte:</string>
+    <string name="empty_apps">Ingen applikasjoner i listen</string>
+    <string name="empty_logs">Ingen logginformasjon</string>
+
+    <string name="detail_package">Pakke:</string>
+    <string name="detail_request">Forespurt UID::</string>
+    <string name="detail_command">Kommando:</string>
+    <string name="detail_status">Status:</string>
+    <string name="detail_created">Opprettet:</string>
+    <string name="detail_last_accessed">Sist aksessert:</string>
+    <string name="request_message">Følgende applikasjon ber om superuser-tilgang:</string>
+    <string name="request_app_name">App:</string>
+
+    <string name="preferences">Innstillinger</string>
+    <string name="pref_category_whitelist_title">Applikasjonsliste</string>
+    <string name="pref_tap_action_title">Trykk på handling</string>
+    <string name="pref_tap_action_summary">Handling som utføres når en oppføring blir trykket på.</string>
+    <string name="pref_show_status_icons_title">Vis statusikoner</string>
+    <string name="pref_show_status_icons_summary_on">Vis statusikon for hver applikasjon</string>
+    <string name="pref_show_status_icons_summary_off">Vis ikke statusikon for hver applikasjon</string>
+    <string name="pref_status_icon_type_title">Statusikontype</string>
+    <string name="pref_status_icon_type_summary">Typen statusikoner som skal vises</string>
+    <string name="pref_category_log_title">Logg</string>
+    <string name="pref_date_format_title">Datoformat</string>
+    <string name="pref_24_hour_title">24-timer-format</string>
+    <string name="pref_show_seconds_title">Vis sekunder</string>
+    <string name="pref_clear_log">Tøm logg</string>
+    <string name="pref_category_notification_title">Notifikasjoner</string>
+    <string name="pref_notifications_title">Notifikasjoner</string>
+    <string name="pref_notifications_summary_on">Vis notifikasjon når en applikasjon får innvilget Su-rettigheter</string>
+    <string name="pref_notifications_summary_off">Ikke vis notifikasjon når en applikasjon får innvilget Su-rettigheter</string>
+    <string name="pref_notification_title">Notfikasjonstype</string>
+    <string name="pref_notification_summary">Type notifikasjon som skal vises når en applikasjon får innvilget Su-rettigheter</string>
+    <string name="pref_category_info_title">Superuser-informasjon</string>
+    <string name="pref_version_summary">Databaseversjon %s</string>
+    <string name="pref_bin_version_summary">Trykk for å sjekke for oppdateringer</string>
+
+    <string name="notification_text">%s har fått innvilget Superuser-rettigheter</string>
+</resources>
