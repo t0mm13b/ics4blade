@@ -8,11 +8,13 @@
  */
 #include "libbb.h"
 
+#if 0
 #if defined(__BIONIC__) && defined(IPV6_PKTINFO)
 struct in6_pktinfo {
         struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
         unsigned int    ipi6_ifindex; /* send/recv if index */
 };
+#endif
 #endif
 
 /*
