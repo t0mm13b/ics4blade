@@ -173,5 +173,5 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.execution-mode=int:jit \
     dalvik.vm.dexopt-data-only=1 \
     ro.opengles.version=131072  \
-    ro.compcache.default=0
-
+    ro.compcache.default=0 \
+    persist.sys.strictmode.disable=true
