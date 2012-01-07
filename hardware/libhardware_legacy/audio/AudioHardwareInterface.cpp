@@ -34,9 +34,7 @@
 #include "AudioDumpInterface.h"
 #endif
 
-//#include <media/AudioParameter.h>
 
-using namespace android;
 // change to 1 to log routing calls
 #define LOG_ROUTING_CALLS 1
 

@@ -1,0 +1,54 @@
+on init
+    write /sys/module/g_android/parameters $ro.serialno
+    write /sys/module/g_android/parameters/product_id 1351
+    write /sys/devices/platform/android_usb/functions/cur_pid 1351
+    write /sys/devices/platform/android_usb/functions/enable_switch 0
+
+#on boot
+
+on property:sys.usb.config=adb
+    write /sys/module/g_android/parameters/product_id 1352
+    start adbd
+    setprop sys.usb.state $sys.usb.config
+
+on property:sys.usb.config=mass_storage,adb
+    write /sys/module/g_android/parameters/product_id 1351
+    start adbd
+    setprop sys.usb.state $sys.usb.config
+
+on property:sys.usb.config=mass_storage
+    write /sys/module/g_android/parameters/product_id 1353
+    setprop sys.usb.state $sys.usb.config
+ 
+#on property:sys.usb.config=mtp
+#    setprop sys.usb.state $sys.usb.config
+
+#on property:sys.usb.config=mtp,adb
+#    start adbd
+#    setprop sys.usb.state $sys.usb.config
+
+on property:sys.usb.config=rndis
+    write /sys/module/g_android/parameters/product_id 1365
+    setprop sys.usb.state $sys.usb.config
+
+on property:sys.usb.config=rndis,adb
+    write /sys/module/g_android/parameters/product_id 1373
+    start adbd
+    setprop sys.usb.state $sys.usb.config
+
+on property:sys.usb.config=mass_storage,rndis,adb
+    write /sys/module/g_android/parameters/product_id 1364
+    start adbd
+    setprop sys.usb.state $sys.usb.config
+
+
+
+#on property:sys.usb.config=ptp
+#    setprop sys.usb.state $sys.usb.config
+
+#on property:sys.usb.config=ptp,adb
+#    start adbd
+#    setprop sys.usb.state $sys.usb.config
+
+#on property:sys.usb.config=rndis,dm
+#    setprop sys.usb.state $sys.usb.config

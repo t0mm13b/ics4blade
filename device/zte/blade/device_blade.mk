@@ -19,6 +19,10 @@
 # product configuration (apps).
 #
 
+#Dirty hack any better way???
+
+PLATFORM_VERSION := 4.0.3
+
 # Inherit from those products. Most specific first.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
@@ -77,7 +81,9 @@ PRODUCT_COPY_FILES += \
 # Init
 PRODUCT_COPY_FILES += \
     device/zte/blade/init.blade.rc:root/init.blade.rc \
+    device/zte/blade/init.blade.usb.rc:root/init.blade.usb.rc \
     device/zte/blade/ueventd.blade.rc:root/ueventd.blade.rc
+
 
 # Audio
 PRODUCT_COPY_FILES += \
@@ -103,7 +109,8 @@ PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
     frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
     frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
-    frameworks/base/data/etc/android.hardware.touchscreen.multitouch.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.xml
+    frameworks/base/data/etc/android.hardware.touchscreen.multitouch.distinct.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.distinct.xml \
+    frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
 
 #Kernel Modules
 PRODUCT_COPY_FILES += \
@@ -174,4 +181,5 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.dexopt-data-only=1 \
     ro.opengles.version=131072  \
     ro.compcache.default=0 \
-    persist.sys.strictmode.disable=true
+    persist.sys.strictmode.disable=true \
+    persist.sys.usb.config=mass_storage,adb

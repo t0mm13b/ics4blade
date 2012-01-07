@@ -4,36 +4,6 @@
 #ENABLE_AUDIO_DUMP := true
 
 LOCAL_PATH := $(call my-dir)
-
-include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES:= \
-    AudioHardwareGeneric.cpp \
-    AudioHardwareStub.cpp \
-    AudioHardwareInterface.cpp
-    
-LOCAL_SHARED_LIBRARIES := \
-    libcutils \
-    libutils \
-    libbinder \
-    libmedia \
-    libhardware_legacy
-    
-ifeq ($(strip $(BOARD_USES_GENERIC_AUDIO)),true)
-    LOCAL_CFLAGS += -DGENERIC_AUDIO
-endif
-
-LOCAL_MODULE:= libaudiointerface
-
-ifeq ($(BOARD_HAVE_BLUETOOTH),true)
-    LOCAL_SRC_FILES += A2dpAudioInterface.cpp
-    LOCAL_SHARED_LIBRARIES += liba2dp
-    LOCAL_CFLAGS += -DWITH_BLUETOOTH -DWITH_A2DP
-    LOCAL_C_INCLUDES += $(call include-path-for, bluez)
-endif
-
-include $(BUILD_STATIC_LIBRARY)
-
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
@@ -63,6 +33,10 @@ endif
 
 ifeq ($(BOARD_HAVE_BLUETOOTH),true)
   LOCAL_CFLAGS += -DWITH_A2DP
+endif
+
+ifeq ($(TARGET_USE_HDMI_AS_PRIMARY),true)
+    LOCAL_CFLAGS += -DUSE_HDMI_AS_PRIMARY
 endif
 
 LOCAL_STATIC_LIBRARIES := libmedia_helper
@@ -122,3 +96,4 @@ include $(BUILD_SHARED_LIBRARY)
 
 #    AudioHardwareGeneric.cpp \
 #    AudioHardwareStub.cpp \
+

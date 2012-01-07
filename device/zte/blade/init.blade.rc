@@ -1,3 +1,4 @@
+import init.blade.usb.rc
 
 service dhcp-service /system/bin/netcfg wlan0 dhcp
         oneshot
