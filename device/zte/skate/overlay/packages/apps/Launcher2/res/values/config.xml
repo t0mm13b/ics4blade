@@ -1,6 +1,0 @@
-<resources>
-    <integer name="config_allAppsFadeInTime">@android:integer/config_mediumAnimTime</integer>
-    <integer name="config_allAppsFadeOutTime">@android:integer/config_shortAnimTime</integer>
-    <integer name="config_allAppsBatchLoadDelay">100</integer>
-    <integer name="config_allAppsBatchSize">4</integer>
-</resources>
