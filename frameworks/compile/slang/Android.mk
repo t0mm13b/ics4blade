@@ -19,7 +19,7 @@ ifeq ($(TARGET_BUILD_APPS),)
 
 LOCAL_PATH := $(call my-dir)
 
-local_cflags_for_slang := -Wno-sign-promo -Wall -Wno-unused-parameter -Werror
+local_cflags_for_slang := -Wno-sign-promo -Wall -Wno-unused-parameter
 ifneq ($(TARGET_BUILD_VARIANT),eng)
 local_cflags_for_slang += -D__DISABLE_ASSERTS
 endif
