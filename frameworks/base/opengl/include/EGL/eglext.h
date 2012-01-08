@@ -238,19 +238,7 @@ struct ANativeWindowBuffer;
 #define EGL_ANDROID_get_render_buffer 1
 #ifdef EGL_EGLEXT_PROTOTYPES
 EGLAPI EGLClientBuffer EGLAPIENTRY eglGetRenderBufferANDROID(EGLDisplay dpy, EGLSurface draw);
-#endif#ifdef QCOM_HARDWARE
-#ifndef EGL_EGLEXT_PROTOTYPES
-#define EGL_EGLEXT_PROTOTYPES 1
 #endif
-
-#ifndef EGL_ANDROID_get_render_buffer
-#define EGL_ANDROID_get_render_buffer 1
-#ifdef EGL_EGLEXT_PROTOTYPES
-EGLAPI EGLClientBuffer EGLAPIENTRY eglGetRenderBufferANDROID(EGLDisplay dpy, EGLSurface draw);
-#endif
-typedef EGLClientBuffer (EGLAPIENTRYP PFNEGLGETRENDERBUFFERANDROIDPROC) (EGLDisplay dpy, EGLSurface draw);
-#endif
-#endif // QCOM_HARDWARE
 typedef EGLClientBuffer (EGLAPIENTRYP PFNEGLGETRENDERBUFFERANDROIDPROC) (EGLDisplay dpy, EGLSurface draw);
 #endif
 #endif // QCOM_HARDWARE
