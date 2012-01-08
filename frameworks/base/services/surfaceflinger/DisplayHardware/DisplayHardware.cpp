@@ -111,6 +111,44 @@ static status_t selectConfigForPixelFormat(
     eglGetConfigs(dpy, NULL, 0, &numConfigs);
     EGLConfig* const configs = new EGLConfig[numConfigs];
     eglChooseConfig(dpy, attrs, configs, numConfigs, &n);
+#ifdef MISSING_EGL_EXTERNAL_IMAGE
+    
+    LOGD("Wanted surface format = %x", format);
+    EGLint a, g, alpha = 8, green = 8;
+    switch (format) {
+        case HAL_PIXEL_FORMAT_RGBA_8888:
+        case HAL_PIXEL_FORMAT_RGBX_8888:
+        case HAL_PIXEL_FORMAT_BGRA_8888:
+            break;
+        case HAL_PIXEL_FORMAT_RGBA_5551:
+            alpha = 1;
+            green = 5;
+            break;
+        case HAL_PIXEL_FORMAT_RGBA_4444:
+            alpha = 4;
+            green = 4;
+            break;
+        case HAL_PIXEL_FORMAT_RGB_565:
+            green = 6;
+            alpha = 0;
+            break;
+    }
+    
+    for (int i=0 ; i<n ; i++) {
+        
+        EGLint nativeVisualId = 0;
+        eglGetConfigAttrib(dpy, configs[i], EGL_NATIVE_VISUAL_ID, &nativeVisualId);
+        eglGetConfigAttrib(dpy, configs[i], EGL_ALPHA_SIZE, &a);
+        eglGetConfigAttrib(dpy, configs[i], EGL_GREEN_SIZE, &g);
+        
+        if (a == alpha && g == green) {
+            *outConfig = configs[i];
+            delete [] configs;
+            return NO_ERROR;
+        }
+        
+    }
+#else
     for (int i=0 ; i<n ; i++) {
         EGLint nativeVisualId = 0;
         eglGetConfigAttrib(dpy, configs[i], EGL_NATIVE_VISUAL_ID, &nativeVisualId);
@@ -120,10 +158,10 @@ static status_t selectConfigForPixelFormat(
             return NO_ERROR;
         }
     }
+#endif
     delete [] configs;
     return NAME_NOT_FOUND;
 }
-
 
 void DisplayHardware::init(uint32_t dpy)
 {
