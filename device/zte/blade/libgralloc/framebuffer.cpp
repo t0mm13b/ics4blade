@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2008 The Android Open Source Project
- * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2010-2011 Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <cutils/ashmem.h>
 #include <cutils/log.h>
 #include <cutils/properties.h>
+#include <utils/Timers.h>
 
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
@@ -32,6 +33,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <utils/Timers.h>
 
 #include <cutils/log.h>
 #include <cutils/atomic.h>
@@ -47,6 +49,8 @@
 #include <cutils/properties.h>
 #endif
 
+#define FB_DEBUG 0
+
 #if defined(HDMI_DUAL_DISPLAY)
 #define AS_1080_RATIO_H (4.25/100)  // Default Action Safe vertical limit for 1080p
 #define AS_1080_RATIO_W (4.25/100)  // Default Action Safe horizontal limit for 1080p
@@ -59,6 +63,7 @@
 #define HEIGHT_480P 480
 #define EVEN_OUT(x) if (x & 0x0001) {x--;}
 using overlay::Overlay;
+using overlay::ActionSafe;
 /** min of int a, b */
 static inline int min(int a, int b) {
     return (a<b) ? a : b;
@@ -71,6 +76,38 @@ static inline int max(int a, int b) {
 static inline size_t ALIGN(size_t x, size_t align) {
     return (x + align-1) & ~(align-1);
 }
+#endif
+
+char framebufferStateName[] = {'S', 'R', 'A'};
+
+#ifdef DEBUG_CALC_FPS
+
+#define MAX_FPS_CALC_PERIOD_IN_FRAMES 128
+#define MAX_FRAMARRIVAL_STEPS          50
+#define MAX_DEBUG_FPS_LEVEL             2
+
+struct debug_fps_metadata_t {
+    /* indicates how many frames do we wait till we calculate FPS */
+    unsigned int period;
+    /* current frame, will go upto period, and then reset */
+    unsigned int curr_frame;
+    /* frame will arrive at a multiple of 16666 us at the display.
+       This indicates how many steps to consider for our calculations.
+       For example, if framearrival_steps = 10, then the frame that arrived
+       after 166660 us or more will be ignored.
+    */
+    unsigned int framearrival_steps;
+    /* ignorethresh_us = framearrival_steps * 16666 */
+    nsecs_t      ignorethresh_us;
+    /* used to calculate the actual frame arrival step, the times might not be
+       accurate
+    */
+    unsigned int margin_us;
+    /* actual data storage */
+    nsecs_t      framearrivals[MAX_FPS_CALC_PERIOD_IN_FRAMES];
+    nsecs_t      accum_framearrivals[MAX_FRAMARRIVAL_STEPS];
+};
+
 #endif
 
 /*****************************************************************************/
@@ -93,6 +130,12 @@ struct fb_context_t {
 };
 
 static int neworientation;
+
+#ifdef DEBUG_CALC_FPS
+static debug_fps_metadata_t debug_fps_metadata;
+static unsigned int debug_fps_level = 0;
+#endif
+
 /*****************************************************************************/
 
 static void
@@ -128,6 +171,92 @@ static int fb_setUpdateRect(struct framebuffer_device_t* dev,
     return 0;
 }
 
+#ifdef DEBUG_CALC_FPS
+
+static void populate_debug_fps_metadata(void)
+{
+    char prop[PROPERTY_VALUE_MAX];
+
+    property_get("debug.gr.calcfps.period", prop, "10");
+    debug_fps_metadata.period = atoi(prop);
+
+    /* default ignorethresh_us: 500 milli seconds */
+    property_get("debug.gr.calcfps.ignorethresh_us", prop, "500000");
+    debug_fps_metadata.ignorethresh_us = atoi(prop);
+
+    debug_fps_metadata.framearrival_steps =
+                       (debug_fps_metadata.ignorethresh_us / 16666);
+
+    if (debug_fps_metadata.framearrival_steps > MAX_FRAMARRIVAL_STEPS) {
+        debug_fps_metadata.framearrival_steps = MAX_FRAMARRIVAL_STEPS;
+        debug_fps_metadata.ignorethresh_us =
+                        debug_fps_metadata.framearrival_steps * 16666;
+    }
+
+    /* 2ms margin of error for the gettimeofday */
+    debug_fps_metadata.margin_us = 2000;
+
+    for (int i = 0; i < MAX_FRAMARRIVAL_STEPS; i++)
+        debug_fps_metadata.accum_framearrivals[i] = 0;
+
+    LOGE("period: %d", debug_fps_metadata.period);
+    LOGE("ignorethresh_us: %lld", debug_fps_metadata.ignorethresh_us);
+}
+
+static void calc_fps(nsecs_t currtime_us)
+{
+    static nsecs_t oldtime_us = 0;
+
+    nsecs_t diff = currtime_us - oldtime_us;
+
+    oldtime_us = currtime_us;
+
+    if (diff > debug_fps_metadata.ignorethresh_us) {
+        return;
+    }
+
+    if (debug_fps_metadata.curr_frame == debug_fps_metadata.period) {
+        /* time to calculate and display FPS */
+        nsecs_t sum = 0;
+        for (unsigned int i = 0; i < debug_fps_metadata.period; i++)
+            sum += debug_fps_metadata.framearrivals[i];
+        LOGE("FPS for last %d frames: %3.2f", debug_fps_metadata.period,
+                        (debug_fps_metadata.period * float(1000000))/float(sum));
+
+        debug_fps_metadata.curr_frame = 0;
+        if (debug_fps_level > 1) {
+            LOGE("Frame Arrival Distribution:");
+            for (unsigned int i = 0;
+                     i < ((debug_fps_metadata.framearrival_steps / 6) + 1);
+                     i++) {
+                LOGE("%lld %lld %lld %lld %lld %lld",
+                    debug_fps_metadata.accum_framearrivals[i*6],
+                    debug_fps_metadata.accum_framearrivals[i*6+1],
+                    debug_fps_metadata.accum_framearrivals[i*6+2],
+                    debug_fps_metadata.accum_framearrivals[i*6+3],
+                    debug_fps_metadata.accum_framearrivals[i*6+4],
+                    debug_fps_metadata.accum_framearrivals[i*6+5]);
+            }
+
+            /* We are done with displaying, now clear the stats */
+            for (unsigned int i = 0; i < debug_fps_metadata.framearrival_steps; i++)
+                debug_fps_metadata.accum_framearrivals[i] = 0;
+        }
+    }
+
+    debug_fps_metadata.framearrivals[debug_fps_metadata.curr_frame++] = diff;
+
+    if (debug_fps_level > 1) {
+        unsigned int currstep = (diff + debug_fps_metadata.margin_us) / 16666;
+
+        if (currstep < debug_fps_metadata.framearrival_steps) {
+            debug_fps_metadata.accum_framearrivals[currstep-1]++;
+        }
+    }
+}
+
+#endif // DEBUG_CALC_FPS
+
 static void *disp_loop(void *ptr)
 {
     struct qbuf_t nxtBuf;
@@ -158,6 +287,7 @@ static void *disp_loop(void *ptr)
         pthread_mutex_lock(&m->overlayLock);
         m->orientation = neworientation;
         m->currentOffset = offset;
+        m->hdmiStateChanged = true;
         pthread_cond_signal(&(m->overlayPost));
         pthread_mutex_unlock(&m->overlayLock);
 #endif
@@ -165,17 +295,37 @@ static void *disp_loop(void *ptr)
             LOGE("ERROR FBIOPUT_VSCREENINFO failed; frame not displayed");
         }
 
+#ifdef DEBUG_CALC_FPS
+        if (debug_fps_level > 0) calc_fps(ns2us(systemTime()));
+#endif
+
         if (cur_buf == -1) {
+            int nxtAvail = ((nxtBuf.idx + 1) % m->numBuffers);
             pthread_mutex_lock(&(m->avail[nxtBuf.idx].lock));
             m->avail[nxtBuf.idx].is_avail = true;
-            pthread_cond_signal(&(m->avail[nxtBuf.idx].cond));
+            m->avail[nxtBuf.idx].state = REF;
+            pthread_cond_broadcast(&(m->avail[nxtBuf.idx].cond));
             pthread_mutex_unlock(&(m->avail[nxtBuf.idx].lock));
         } else {
+            pthread_mutex_lock(&(m->avail[nxtBuf.idx].lock));
+            if (m->avail[nxtBuf.idx].state != SUB) {
+                LOGE_IF(m->swapInterval != 0, "[%d] state %c, expected %c", nxtBuf.idx,
+                    framebufferStateName[m->avail[nxtBuf.idx].state],
+                    framebufferStateName[SUB]);
+            }
+            m->avail[nxtBuf.idx].state = REF;
+            pthread_mutex_unlock(&(m->avail[nxtBuf.idx].lock));
+
             pthread_mutex_lock(&(m->avail[cur_buf].lock));
             m->avail[cur_buf].is_avail = true;
-            pthread_cond_signal(&(m->avail[cur_buf].cond));
+            if (m->avail[cur_buf].state != REF) {
+                LOGE_IF(m->swapInterval != 0, "[%d] state %c, expected %c", cur_buf,
+                    framebufferStateName[m->avail[cur_buf].state],
+                    framebufferStateName[REF]);
+            }
+            m->avail[cur_buf].state = AVL;
+            pthread_cond_broadcast(&(m->avail[cur_buf].cond));
             pthread_mutex_unlock(&(m->avail[cur_buf].lock));
-
         }
         cur_buf = nxtBuf.idx;
     }
@@ -183,29 +333,37 @@ static void *disp_loop(void *ptr)
 }
 
 #if defined(HDMI_DUAL_DISPLAY)
+static int postOrigResHDMI(private_module_t *);
 static void *hdmi_ui_loop(void *ptr)
 {
     private_module_t* m = reinterpret_cast<private_module_t*>(
             ptr);
     while (1) {
+        if(m->isOrigResStarted) {
+            postOrigResHDMI(m);
+            continue;
+        }
         pthread_mutex_lock(&m->overlayLock);
-        pthread_cond_wait(&(m->overlayPost), &(m->overlayLock));
+        while(!(m->hdmiStateChanged))
+            pthread_cond_wait(&(m->overlayPost), &(m->overlayLock));
+        m->hdmiStateChanged = false;
         if (m->exitHDMIUILoop) {
             pthread_mutex_unlock(&m->overlayLock);
             return NULL;
         }
-        float asWidthRatio = m->actionsafeWidthRatio/100.0f;
-        float asHeightRatio = m->actionsafeHeightRatio/100.0f;
+        float asWidthRatio = ActionSafe::getWidthRatio() / 100.0f;
+        float asHeightRatio = ActionSafe::getHeightRatio() / 100.0f;
 
         if (m->pobjOverlay) {
             Overlay* pTemp = m->pobjOverlay;
             if (!m->enableHDMIOutput)
                 pTemp->closeChannel();
-            else if (m->enableHDMIOutput && !m->videoOverlay) {
+            else if (m->enableHDMIOutput && !m->videoOverlay &&
+                        !(m->isOrigResStarted)) {
                 if (!pTemp->isChannelUP()) {
                    int alignedW = ALIGN(m->info.xres, 32); 
                    if (pTemp->startChannel(alignedW, m->info.yres,
-                                 m->fbFormat, 1, false, true)) {
+                                 m->fbFormat, 1, false, true, 0, VG0_PIPE, true)) {
                         pTemp->setFd(m->framebuffer->fd);
                         pTemp->setCrop(0, 0, m->info.xres, m->info.yres);
                    } else
@@ -291,13 +449,24 @@ static void *hdmi_ui_loop(void *ptr)
                             break;
                         }
                     }
-                    pTemp->setParameter(OVERLAY_TRANSFORM,
-                                          rot);
+                    int currOrientation = 0;
+                    pTemp->getOrientation(currOrientation);
+                    if(rot != currOrientation) {
+                        pTemp->setParameter(OVERLAY_TRANSFORM,
+                                              rot);
+                    }
                     EVEN_OUT(asX);
                     EVEN_OUT(asY);
                     EVEN_OUT(aswidth);
                     EVEN_OUT(asheight);
-                    pTemp->setPosition(asX, asY, aswidth, asheight);
+                    int currentX = 0, currentY = 0;
+                    uint32_t currentW = width, currentH = height;
+                    if (pTemp->getPosition(currentX, currentY, currentW, currentH)) {
+                        if ((currentX != asX) || (currentY != asY) || (currentW != aswidth)
+                            || (currentH != asheight)) {
+                            pTemp->setPosition(asX, asY, aswidth, asheight);
+                        }
+                    }
                     pTemp->queueBuffer(m->currentOffset);
                 }
             }
@@ -315,14 +484,17 @@ static int fb_videoOverlayStarted(struct framebuffer_device_t* dev, int started)
             dev->common.module);
     pthread_mutex_lock(&m->overlayLock);
     Overlay* pTemp = m->pobjOverlay;
-    if (started && pTemp) {
-        pTemp->closeChannel();
-        m->videoOverlay = true;
-        pthread_cond_signal(&(m->overlayPost));
-    }
-    else {
-        m->videoOverlay = false;
-        pthread_cond_signal(&(m->overlayPost));
+    if(started != m->videoOverlay) {
+        m->hdmiStateChanged = true;
+        if (started && pTemp) {
+            pTemp->closeChannel();
+            m->videoOverlay = true;
+            pthread_cond_signal(&(m->overlayPost));
+        }
+        else {
+           m->videoOverlay = false;
+           pthread_cond_signal(&(m->overlayPost));
+        }
     }
     pthread_mutex_unlock(&m->overlayLock);
     return 0;
@@ -334,33 +506,18 @@ static int fb_enableHDMIOutput(struct framebuffer_device_t* dev, int enable)
             dev->common.module);
     pthread_mutex_lock(&m->overlayLock);
     Overlay* pTemp = m->pobjOverlay;
-    if (!enable && pTemp)
-        pTemp->closeChannel();
     m->enableHDMIOutput = enable;
+    if(m->isOrigResStarted) {
+        m->ts.isHDMIExitPending = !enable;
+    } else if (!enable && pTemp) {
+        pTemp->closeChannel();
+    }
+    m->hdmiStateChanged = true;
     pthread_cond_signal(&(m->overlayPost));
     pthread_mutex_unlock(&m->overlayLock);
     return 0;
 }
 
-static int fb_setActionSafeWidthRatio(struct framebuffer_device_t* dev, float asWidthRatio)
-{
-    private_module_t* m = reinterpret_cast<private_module_t*>(
-            dev->common.module);
-    pthread_mutex_lock(&m->overlayLock);
-    m->actionsafeWidthRatio = asWidthRatio;
-    pthread_mutex_unlock(&m->overlayLock);
-    return 0;
-}
-
-static int fb_setActionSafeHeightRatio(struct framebuffer_device_t* dev, float asHeightRatio)
-{
-    private_module_t* m = reinterpret_cast<private_module_t*>(
-            dev->common.module);
-    pthread_mutex_lock(&m->overlayLock);
-    m->actionsafeHeightRatio = asHeightRatio;
-    pthread_mutex_unlock(&m->overlayLock);
-    return 0;
-}
 static int fb_orientationChanged(struct framebuffer_device_t* dev, int orientation)
 {
     private_module_t* m = reinterpret_cast<private_module_t*>(
@@ -370,6 +527,170 @@ static int fb_orientationChanged(struct framebuffer_device_t* dev, int orientati
     pthread_mutex_unlock(&m->overlayLock);
     return 0;
 }
+
+/* Posts buffers in their original resolution to secondary.
+ */
+static int postOrigResHDMI(private_module_t* m) {
+    int w, h, format;
+    buffer_handle_t buffer;
+    int ret = NO_ERROR;
+
+    //Wait for new buffer call and read values
+    pthread_mutex_lock(&m->ts.newBufferMutex);
+    while(m->ts.isNewBuffer == false) {
+        pthread_cond_wait(&m->ts.newBufferCond, &m->ts.newBufferMutex);
+    }
+    m->ts.get(w,h,format,buffer);
+    m->ts.isNewBuffer = false;
+    pthread_mutex_unlock(&m->ts.newBufferMutex);
+
+    //Post them to secondary
+    if(m->enableHDMIOutput) {
+        const int orientation = 0;
+        ret = m->pOrigResTV->setSource(w, h, format, orientation);
+        if(ret == NO_ERROR) {
+            m->pOrigResTV->setPosition();
+            ret = m->pOrigResTV->queueBuffer(buffer);
+        }
+        if(ret != NO_ERROR)
+            LOGE("Posting original resolution surface to secondary failed");
+    }
+    //Signal that we posted the buffer
+    pthread_mutex_lock(&m->ts.bufferPostedMutex);
+    m->ts.isBufferPosted = true;
+    pthread_cond_signal(&m->ts.bufferPostedCond);
+    pthread_mutex_unlock(&m->ts.bufferPostedMutex);
+    if(m->ts.isExitPending || m->ts.isHDMIExitPending) {
+        m->pOrigResTV->closeChannel();
+    }
+    return ret;
+}
+
+
+/* Posts buffers in their original resolution to primary.
+ */
+static int fb_postOrigResBuffer(struct framebuffer_device_t* dev,
+                                 buffer_handle_t buffer, int w,
+                                 int h, int format, int orientation) {
+    private_module_t* m = reinterpret_cast<private_module_t*>(
+            dev->common.module);
+    int ret = NO_ERROR;
+    if (m->isOrigResStarted) {
+        //Share new values
+        pthread_mutex_lock(&m->ts.newBufferMutex);
+        m->ts.set(w,h,format,buffer);
+        m->ts.isNewBuffer = true;
+        pthread_cond_signal(&m->ts.newBufferCond);
+        pthread_mutex_unlock(&m->ts.newBufferMutex);
+
+        ret = m->pOrigResPanel->setSource(w, h, format, orientation);
+        if(ret == NO_ERROR) {
+            ret = m->pOrigResPanel->queueBuffer(buffer);
+        }
+        if(ret != NO_ERROR)
+            LOGE("Posting original resolution surface to primary failed");
+
+        //Wait for HDMI to post buffers
+        pthread_mutex_lock(&m->ts.bufferPostedMutex);
+        while(m->ts.isBufferPosted == false) {
+            pthread_cond_wait(&m->ts.bufferPostedCond,
+                &m->ts.bufferPostedMutex);
+        }
+        m->ts.isBufferPosted = false;
+        pthread_mutex_unlock(&m->ts.bufferPostedMutex);
+    }
+    if(m->ts.isExitPending) {
+        m->pOrigResPanel->closeChannel();
+    }
+    return ret;
+}
+
+static int fb_startOrigResDisplay(struct framebuffer_device_t* dev) {
+    private_module_t* m = reinterpret_cast<private_module_t*>(
+            dev->common.module);
+    int ret = NO_ERROR;
+    dev->videoOverlayStarted(dev, true);
+    m->ts.clear();
+    m->isOrigResStarted = true;
+    return ret;
+}
+
+static int fb_stopOrigResDisplay(struct framebuffer_device_t* dev) {
+    private_module_t* m = reinterpret_cast<private_module_t*>(
+            dev->common.module);
+    int ret = NO_ERROR;
+    m->isOrigResStarted = false;
+    m->ts.isExitPending = true;
+    //Free the threads
+    m->ts.isNewBuffer = true;
+    m->ts.isBufferPosted = true;
+    pthread_cond_signal(&m->ts.newBufferCond);
+    pthread_cond_signal(&m->ts.bufferPostedCond);
+    m->pOrigResPanel->closeChannel();
+    m->pOrigResTV->closeChannel();
+    dev->videoOverlayStarted(dev, false);
+    return ret;
+}
+
+#endif
+
+#if defined(SF_BYPASS)
+static int fb_postBypassBuffer(struct framebuffer_device_t* dev,
+                                 buffer_handle_t buffer, int w,
+                                 int h, int format, int orientation, int isHPDON)
+{
+    if (isHPDON)
+        return -EINVAL;
+
+    private_module_t* m = reinterpret_cast<private_module_t*>(
+            dev->common.module);
+    if (m->pobjOverlayUI) {
+        OverlayUI* pobjOverlay = m->pobjOverlayUI;
+        if (buffer == NULL) {
+            pobjOverlay->closeChannel();
+            return NO_ERROR;
+        }
+
+        bool useVGPipe = false;
+
+        status_t ret = pobjOverlay->setSource(w, h, format, orientation, useVGPipe);
+        if (ret != NO_ERROR)
+            return ret;
+
+        ret = pobjOverlay->queueBuffer(buffer);
+
+        if (ret != NO_ERROR)
+            LOGE("error in queue.. ");
+        return ret;
+    }
+    return NO_ERROR;
+}
+
+static int fb_closeBypass(struct framebuffer_device_t* dev)
+{
+    private_module_t* m = reinterpret_cast<private_module_t*>(
+            dev->common.module);
+    if (m->pobjOverlayUI) {
+        OverlayUI* pobjOverlay = m->pobjOverlayUI;
+        pobjOverlay->closeChannel();
+        return NO_ERROR;
+    }
+
+    return NO_ERROR;
+}
+
+static int fb_copyBypassBuffer(struct framebuffer_device_t* dev)
+{
+    private_module_t* m = reinterpret_cast<private_module_t*>(
+            dev->common.module);
+    if (m->pobjOverlayUI) {
+        OverlayUI* pobjOverlay = m->pobjOverlayUI;
+        return (pobjOverlay->copyBuffer());
+    }
+
+    return NO_ERROR;
+}
+
 #endif
 
 static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
@@ -377,7 +698,7 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
     if (private_handle_t::validate(buffer) < 0)
         return -EINVAL;
 
-    int nxtIdx;
+    int nxtIdx, futureIdx = -1;
     bool reuse;
     struct qbuf_t qb;
     fb_context_t* ctx = (fb_context_t*)dev;
@@ -389,7 +710,8 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
     if (hnd->flags & private_handle_t::PRIV_FLAGS_FRAMEBUFFER) {
 
         reuse = false;
-        nxtIdx = (m->currentIdx + 1) % NUM_BUFFERS;
+        nxtIdx = (m->currentIdx + 1) % m->numBuffers;
+        futureIdx = (nxtIdx + 1) % m->numBuffers;
 
         if (m->swapInterval == 0) {
             // if SwapInterval = 0 and no buffers available then reuse
@@ -411,7 +733,19 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
 
             // post/queue the new buffer
             pthread_mutex_lock(&(m->avail[nxtIdx].lock));
+            if (m->avail[nxtIdx].is_avail != true) {
+                LOGE_IF(m->swapInterval != 0, "Found %d buf to be not avail", nxtIdx);
+            }
+
             m->avail[nxtIdx].is_avail = false;
+
+            if (m->avail[nxtIdx].state != AVL) {
+                LOGD("[%d] state %c, expected %c", nxtIdx,
+                    framebufferStateName[m->avail[nxtIdx].state],
+                    framebufferStateName[AVL]);
+            }
+
+            m->avail[nxtIdx].state = SUB;
             pthread_mutex_unlock(&(m->avail[nxtIdx].lock));
 
             qb.idx = nxtIdx;
@@ -425,18 +759,22 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
             // (current) buffer
             if (m->currentBuffer) {
                 if (m->swapInterval != 0) {
-                    pthread_mutex_lock(&(m->avail[m->currentIdx].lock));
-                    if (! m->avail[m->currentIdx].is_avail) {
-                        pthread_cond_wait(&(m->avail[m->currentIdx].cond),
-                                         &(m->avail[m->currentIdx].lock));
-                        m->avail[m->currentIdx].is_avail = true;
+                    pthread_mutex_lock(&(m->avail[futureIdx].lock));
+                    //while (! m->avail[futureIdx].is_avail) {
+                    while (m->avail[futureIdx].state != AVL) {
+                        pthread_cond_wait(&(m->avail[futureIdx].cond),
+                                         &(m->avail[futureIdx].lock));
+                        //m->avail[futureIdx].is_avail = true;
                     }
-                    pthread_mutex_unlock(&(m->avail[m->currentIdx].lock));
+                    pthread_mutex_unlock(&(m->avail[futureIdx].lock));
                 }
                 m->base.unlock(&m->base, m->currentBuffer);
             }
             m->currentBuffer = buffer;
             m->currentIdx = nxtIdx;
+            if (m->avail[futureIdx].state != AVL) {
+                LOGE_IF(m->swapInterval != 0, "[%d] != AVL!", futureIdx);
+            }
         } else {
             if (m->currentBuffer)
                 m->base.unlock(&m->base, m->currentBuffer);
@@ -472,6 +810,10 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
         m->base.unlock(&m->base, m->framebuffer); 
     }
 
+    LOGD_IF(FB_DEBUG, "Framebuffer state: [0] = %c [1] = %c [2] = %c",
+        framebufferStateName[m->avail[0].state],
+        framebufferStateName[m->avail[1].state],
+        framebufferStateName[m->avail[2].state]);
     return 0;
 }
 
@@ -479,6 +821,25 @@ static int fb_compositionComplete(struct framebuffer_device_t* dev)
 {
     // TODO: Properly implement composition complete callback
     glFinish();
+
+    return 0;
+}
+
+static int fb_dequeueBuffer(struct framebuffer_device_t* dev, int index)
+{
+    private_module_t* m = reinterpret_cast<private_module_t*>(
+            dev->common.module);
+
+    // Return immediately if the buffer is available
+    if ((m->avail[index].state == AVL) || (m->swapInterval == 0))
+        return 0;
+
+    pthread_mutex_lock(&(m->avail[index].lock));
+    while (m->avail[index].state != AVL) {
+        pthread_cond_wait(&(m->avail[index].cond),
+                         &(m->avail[index].lock));
+    }
+    pthread_mutex_unlock(&(m->avail[index].lock));
 
     return 0;
 }
@@ -500,6 +861,7 @@ int mapFrameBufferLocked(struct private_module_t* module)
     int fd = -1;
     int i=0;
     char name[64];
+    char property[PROPERTY_VALUE_MAX];
 
     while ((fd==-1) && device_template[i]) {
         snprintf(name, 64, device_template[i], 0);
@@ -548,7 +910,6 @@ int mapFrameBufferLocked(struct private_module_t* module)
 	/* Note: the GL driver does not have a r=8 g=8 b=8 a=0 config, so if we do
 	* not use the MDP for composition (i.e. hw composition == 0), ask for
 	* RGBA instead of RGBX. */
-	char property[PROPERTY_VALUE_MAX];
 	if (property_get("debug.sf.hw", property, NULL) > 0 && atoi(property) == 0)
 		module->fbFormat = HAL_PIXEL_FORMAT_RGBX_8888;
 	else if(property_get("debug.composition.type", property, NULL) > 0 && (strncmp(property, "mdp", 3) == 0))
@@ -573,8 +934,22 @@ int mapFrameBufferLocked(struct private_module_t* module)
     /*
      * Request NUM_BUFFERS screens (at lest 2 for page flipping)
      */
-    info.yres_virtual = info.yres * NUM_BUFFERS;
+    int numberOfBuffers = (int)(finfo.smem_len/(info.yres * info.xres * (info.bits_per_pixel/8)));
+    LOGV("num supported framebuffers in kernel = %d", numberOfBuffers);
 
+    if (property_get("debug.gr.numframebuffers", property, NULL) > 0) {
+        int num = atoi(property);
+        if ((num >= NUM_FRAMEBUFFERS_MIN) && (num <= NUM_FRAMEBUFFERS_MAX)) {
+            numberOfBuffers = num;
+        }
+    }
+
+    if (numberOfBuffers > NUM_FRAMEBUFFERS_MAX)
+        numberOfBuffers = NUM_FRAMEBUFFERS_MAX;
+
+    LOGE("We support %d buffers", numberOfBuffers);
+
+    info.yres_virtual = info.yres * numberOfBuffers;
 
     uint32_t flags = PAGE_FLIP;
     if (ioctl(fd, FBIOPUT_VSCREENINFO, &info) == -1) {
@@ -594,18 +969,6 @@ int mapFrameBufferLocked(struct private_module_t* module)
     if (ioctl(fd, FBIOGET_VSCREENINFO, &info) == -1)
         return -errno;
 
-    int refreshRate = 1000000000000000LLU /
-    (
-            uint64_t( info.upper_margin + info.lower_margin + info.yres )
-            * ( info.left_margin  + info.right_margin + info.xres )
-            * info.pixclock
-    );
-
-    if (refreshRate == 0) {
-        // bleagh, bad info from the driver
-        refreshRate = 60*1000;  // 60 Hz
-    }
-
     if (int(info.width) <= 0 || int(info.height) <= 0) {
         // the driver doesn't return that information
         // default to 160 dpi
@@ -615,7 +978,8 @@ int mapFrameBufferLocked(struct private_module_t* module)
 
     float xdpi = (info.xres * 25.4f) / info.width;
     float ydpi = (info.yres * 25.4f) / info.height;
-    float fps  = refreshRate / 1000.0f;
+    //The reserved[4] field is used to store FPS by the driver.
+    float fps  = info.reserved[4];
 
     LOGI(   "using (fd=%d)\n"
             "id           = %s\n"
@@ -654,7 +1018,6 @@ int mapFrameBufferLocked(struct private_module_t* module)
     if (finfo.smem_len <= 0)
         return -errno;
 
-
     module->flags = flags;
     module->info = info;
     module->finfo = finfo;
@@ -679,13 +1042,27 @@ int mapFrameBufferLocked(struct private_module_t* module)
     module->swapInterval = 1;
 #endif
 
+#ifdef DEBUG_CALC_FPS
+    char prop[PROPERTY_VALUE_MAX];
+    property_get("debug.gr.calcfps", prop, "0");
+    debug_fps_level = atoi(prop);
+    if (debug_fps_level > MAX_DEBUG_FPS_LEVEL) {
+        LOGW("out of range value for debug.gr.calcfps, using 0");
+        debug_fps_level = 0;
+    }
+
+    LOGE("DEBUG_CALC_FPS: %d", debug_fps_level);
+    populate_debug_fps_metadata();
+#endif
+
     module->currentIdx = -1;
     pthread_cond_init(&(module->qpost), NULL);
     pthread_mutex_init(&(module->qlock), NULL);
-    for (i = 0; i < NUM_BUFFERS; i++) {
+    for (i = 0; i < NUM_FRAMEBUFFERS_MAX; i++) {
         pthread_mutex_init(&(module->avail[i].lock), NULL);
         pthread_cond_init(&(module->avail[i].cond), NULL);
         module->avail[i].is_avail = true;
+        module->avail[i].state = AVL;
     }    
 
     /* create display update thread */
@@ -721,8 +1098,17 @@ int mapFrameBufferLocked(struct private_module_t* module)
     module->pobjOverlay = new Overlay();
     module->currentOffset = 0;
     module->exitHDMIUILoop = false;
+    module->hdmiStateChanged = false;
     pthread_t hdmiUIThread;
     pthread_create(&hdmiUIThread, NULL, &hdmi_ui_loop, (void *) module);
+    module->pOrigResPanel = new OverlayOrigRes<OverlayUI::FB0>();
+    module->pOrigResTV = new OverlayOrigRes<OverlayUI::FB1>();
+    module->isOrigResStarted = false;
+
+#endif
+
+#if defined(SF_BYPASS)
+    module->pobjOverlayUI = new OverlayUI();
 #endif
 
     return 0;
@@ -748,6 +1134,13 @@ static int fb_close(struct hw_device_t *dev)
     m->exitHDMIUILoop = true;
     pthread_cond_signal(&(m->overlayPost));
     pthread_mutex_unlock(&m->overlayLock);
+    delete m->pOrigResPanel;
+    delete m->pOrigResTV;
+#endif
+
+#if defined(SF_BYPASS)
+    delete m->pobjOverlayUI;
+    m->pobjOverlayUI = 0;
 #endif
     if (ctx) {
         free(ctx);
@@ -778,12 +1171,20 @@ int fb_device_open(hw_module_t const* module, const char* name,
         dev->device.post            = fb_post;
         dev->device.setUpdateRect = 0;
         dev->device.compositionComplete = fb_compositionComplete;
+        dev->device.dequeueBuffer = fb_dequeueBuffer;
 #if defined(HDMI_DUAL_DISPLAY)
         dev->device.orientationChanged = fb_orientationChanged;
         dev->device.videoOverlayStarted = fb_videoOverlayStarted;
         dev->device.enableHDMIOutput = fb_enableHDMIOutput;
-        dev->device.setActionSafeWidthRatio = fb_setActionSafeWidthRatio;
-        dev->device.setActionSafeHeightRatio = fb_setActionSafeHeightRatio;
+        dev->device.postOrigResBuffer = fb_postOrigResBuffer;
+        dev->device.startOrigResDisplay = fb_startOrigResDisplay;
+        dev->device.stopOrigResDisplay = fb_stopOrigResDisplay;
+#endif
+
+#if defined(SF_BYPASS)
+        dev->device.postBypassBuffer = fb_postBypassBuffer;
+        dev->device.closeBypass      = fb_closeBypass;
+        dev->device.copyBypassBuffer = fb_copyBypassBuffer;
 #endif
 
         private_module_t* m = (private_module_t*)module;
@@ -800,6 +1201,7 @@ int fb_device_open(hw_module_t const* module, const char* name,
             const_cast<float&>(dev->device.fps) = m->fps;
             const_cast<int&>(dev->device.minSwapInterval) = private_module_t::PRIV_MIN_SWAP_INTERVAL;
             const_cast<int&>(dev->device.maxSwapInterval) = private_module_t::PRIV_MAX_SWAP_INTERVAL;
+            const_cast<int&>(dev->device.numFramebuffers) = m->numBuffers;
 
             if (m->finfo.reserved[0] == 0x5444 &&
                     m->finfo.reserved[1] == 0x5055) {

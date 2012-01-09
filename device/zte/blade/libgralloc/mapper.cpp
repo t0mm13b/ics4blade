@@ -50,19 +50,6 @@ pid_t gettid() { return syscall(__NR_gettid);}
 #undef __KERNEL__
 #endif
 
-// Pulled from CAF's pmem_android and ashmem headers
-struct pmem_addr {
-        unsigned long vaddr;
-        unsigned long offset;
-        unsigned long length;
-};
-
-#define PMEM_CLEAN_CACHES       _IOW(PMEM_IOCTL_MAGIC, 12, unsigned int)
-#define ASHMEM_CACHE_CLEAN_RANGE	_IO(__ASHMEMIOC, 12)
-#define GRALLOC_MODULE_PERFORM_DECIDE_PUSH_BUFFER_HANDLING 0x080000002
-
-// End of CAF values
-
 /*****************************************************************************/
 
 static int gralloc_map(gralloc_module_t const* module,
@@ -304,11 +291,11 @@ int gralloc_unlock(gralloc_module_t const* module,
             err = ioctl( hnd->fd, PMEM_CLEAN_CACHES,  &pmem_addr);
         } else if ((hnd->flags & private_handle_t::PRIV_FLAGS_USES_ASHMEM)) {
             unsigned long addr = hnd->base + hnd->offset;
-            err = ioctl(hnd->fd, ASHMEM_CACHE_CLEAN_RANGE, NULL);
+            err = ioctl(hnd->fd, ASHMEM_CACHE_FLUSH_RANGE, NULL);
         }         
 
-        LOGE_IF(err < 0, "cannot flush handle %p (offs=%x len=%x)\n",
-                hnd, hnd->offset, hnd->size);
+        LOGE_IF(err < 0, "cannot flush handle %p (offs=%x len=%x, flags = 0x%x) err=%s\n",
+                hnd, hnd->offset, hnd->size, hnd->flags, strerror(errno));
         hnd->flags &= ~private_handle_t::PRIV_FLAGS_NEEDS_FLUSH;
     }
 
@@ -353,18 +340,23 @@ int gralloc_perform(struct gralloc_module_t const* module,
             size_t offset = va_arg(args, size_t);
             void* base = va_arg(args, void*);
 
-            // validate that it's indeed a pmem buffer
-            pmem_region region;
-            if (ioctl(fd, PMEM_GET_SIZE, &region) < 0) {
-                break;
-            }
-
             native_handle_t** handle = va_arg(args, native_handle_t**);
+            int memoryFlags = va_arg(args, int);
+            if (memoryFlags == GRALLOC_USAGE_PRIVATE_PMEM) {
+                // validate that it's indeed a pmem buffer
+                pmem_region region;
+                if (ioctl(fd, PMEM_GET_SIZE, &region) < 0) {
+                    break;
+                }
+            }
             private_handle_t* hnd = (private_handle_t*)native_handle_create(
                     private_handle_t::sNumFds, private_handle_t::sNumInts);
             hnd->magic = private_handle_t::sMagic;
             hnd->fd = fd;
-            hnd->flags = private_handle_t::PRIV_FLAGS_USES_PMEM;
+            hnd->flags = (memoryFlags == GRALLOC_USAGE_PRIVATE_PMEM) ?
+                         private_handle_t::PRIV_FLAGS_USES_PMEM |
+                         private_handle_t::PRIV_FLAGS_DO_NOT_FLUSH:
+                         private_handle_t::PRIV_FLAGS_USES_ASHMEM;
             hnd->size = size;
             hnd->offset = offset;
             hnd->base = intptr_t(base) + offset;
@@ -417,8 +409,9 @@ int decideBufferHandlingMechanism(int format, const char *compositionUsed, int h
         *needConversion = FALSE;
         *useBufferDirectly = FALSE;
     } else if(strncmp(compositionUsed, "gpu", 3) == 0) {
-        if(format == HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED
-           || format == HAL_PIXEL_FORMAT_YCrCb_420_SP_ADRENO) {
+        if(format == HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED  ||
+           format == HAL_PIXEL_FORMAT_YCrCb_420_SP_ADRENO ||
+           format == HAL_PIXEL_FORMAT_YV12) {
             *needConversion = FALSE;
             *useBufferDirectly = TRUE;
         } else if(hasBlitEngine) {
@@ -428,7 +421,8 @@ int decideBufferHandlingMechanism(int format, const char *compositionUsed, int h
     } else if ((strncmp(compositionUsed, "mdp", 3) == 0) ||
                (strncmp(compositionUsed, "c2d", 3) == 0)){
         if(format == HAL_PIXEL_FORMAT_YCbCr_420_SP ||
-           format == HAL_PIXEL_FORMAT_YCrCb_420_SP) {
+           format == HAL_PIXEL_FORMAT_YCrCb_420_SP ||
+           format == HAL_PIXEL_FORMAT_YV12) {
             *needConversion = FALSE;
             *useBufferDirectly = TRUE;
         } else if((strncmp(compositionUsed, "c2d", 3) == 0) &&
@@ -481,7 +475,8 @@ size_t calculateBufferSize(int width, int height, int format)
             break;
         }
         case HAL_PIXEL_FORMAT_YCrCb_420_SP:
-        case HAL_PIXEL_FORMAT_YCbCr_420_SP: {
+        case HAL_PIXEL_FORMAT_YCbCr_420_SP:
+        case HAL_PIXEL_FORMAT_YV12: {
             /* Camera and video YUV 420 semi-planar buffers are allocated   with
             size equal to w * h * 1.5 */
             int aligned_width = (width + 15) & ~15;
