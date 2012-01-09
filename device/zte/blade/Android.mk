@@ -13,7 +13,7 @@
 # limitations under the License.
 
 ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),blade)
-  include $(call all-named-subdir-makefiles, libaudio libril libcamera libcopybit libsensors liblights)
+  include $(call all-named-subdir-makefiles, libaudio libril libcamera libsensors liblights)
 endif
 LOCAL_STATIC_LIBRARIES += A2dpAudioInterface
 ifeq ($(BOARD_HAVE_BLUETOOTH),true)
