@@ -20,8 +20,8 @@ LOCAL_SRC_FILES:= \
 LOCAL_CFLAGS:= -DLOG_TAG=\"SurfaceFlinger\"
 LOCAL_CFLAGS += -DGL_GLEXT_PROTOTYPES -DEGL_EGLEXT_PROTOTYPES
 
-ifeq ($(BOARD_NO_RGBX_8888),true)      
-  LOCAL_CFLAGS += -DNO_RGBX_8888
+ifeq ($(BOARD_NO_RGBX_8888),true)	  	
+	LOCAL_CFLAGS += -DNO_RGBX_8888
 endif
 
 ifeq ($(TARGET_BOARD_PLATFORM), omap3)
@@ -32,15 +32,17 @@ ifeq ($(TARGET_BOARD_PLATFORM), omap4)
 endif
 ifeq ($(TARGET_BOARD_PLATFORM), s5pc110)
 	LOCAL_CFLAGS += -DHAS_CONTEXT_PRIORITY -DNEVER_DEFAULT_TO_ASYNC_MODE
-endif
-ifeq ($(BOARD_HAS_FLIPPED_SCREEN),true)
-        LOCAL_CFLAGS += -DHAS_FLIPPED_SCREEN
+	LOCAL_CFLAGS += -DREFRESH_RATE=56
 endif
 
-ifneq (,$(findstring $(TARGET_DEVICE),tuna toro maguro))
-	LOCAL_CFLAGS += -DREFRESH_RATE=59
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+ifneq ($(BOARD_USES_QCOM_LEGACY),true)
+LOCAL_SHARED_LIBRARIES := \
+	libQcomUI
+LOCAL_C_INCLUDES += hardware/qcom/display/libqcomui
 endif
-
+LOCAL_CFLAGS += -DQCOM_HARDWARE
+endif
 
 LOCAL_SHARED_LIBRARIES := \
 	libcutils \
@@ -66,7 +68,16 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_C_INCLUDES += hardware/libhardware/modules/gralloc
 
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+LOCAL_SHARED_LIBRARIES += \
+	libQcomUI
+LOCAL_C_INCLUDES += hardware/qcom/display/libqcomui
+LOCAL_CFLAGS += -DQCOM_HARDWARE
+ifeq ($(TARGET_QCOM_HDMI_OUT),true)
+LOCAL_CFLAGS += -DQCOM_HDMI_OUT
+endif
+endif
+
 LOCAL_MODULE:= libsurfaceflinger
 
 include $(BUILD_SHARED_LIBRARY)
-

@@ -30,6 +30,10 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= $(commonSources)
 
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+LOCAL_CFLAGS += -DQCOM_HARDWARE
+endif
+
 LOCAL_MODULE:= libui
 
 include $(BUILD_HOST_STATIC_LIBRARY)

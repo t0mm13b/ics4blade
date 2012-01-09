@@ -148,6 +148,7 @@ static status_t selectConfigForPixelFormat(
         }
         
     }
+    
 #else
     for (int i=0 ; i<n ; i++) {
         EGLint nativeVisualId = 0;
@@ -162,6 +163,7 @@ static status_t selectConfigForPixelFormat(
     delete [] configs;
     return NAME_NOT_FOUND;
 }
+
 
 void DisplayHardware::init(uint32_t dpy)
 {
@@ -211,6 +213,7 @@ void DisplayHardware::init(uint32_t dpy)
             LOGW("H/W composition disabled");
             attribs[2] = EGL_CONFIG_CAVEAT;
             attribs[3] = EGL_SLOW_CONFIG;
+#ifdef QCOM_HARDWARE
         } else {
             // We have hardware composition enabled. Check the composition type
             if (property_get("debug.composition.type", property, NULL) > 0) {
@@ -219,6 +222,7 @@ void DisplayHardware::init(uint32_t dpy)
                         mFlags |= (((strncmp(property, "c2d", 3)) == 0)) ? C2D_COMPOSITION:0;
                 }
             }
+#endif
         }
     }
 
@@ -333,22 +337,6 @@ void DisplayHardware::init(uint32_t dpy)
 
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
     glGetIntegerv(GL_MAX_VIEWPORT_DIMS, mMaxViewportDims);
-
-
-#ifdef EGL_ANDROID_swap_rectangle
-    if (extensions.hasExtension("EGL_ANDROID_swap_rectangle")) {
-        if (eglSetSwapRectangleANDROID(display, surface,
-                0, 0, mWidth, mHeight) == EGL_TRUE) {
-            // This could fail if this extension is not supported by this
-            // specific surface (of config)
-            mFlags |= SWAP_RECTANGLE;
-        }
-    }
-    // when we have the choice between PARTIAL_UPDATES and SWAP_RECTANGLE
-    // choose PARTIAL_UPDATES, which should be more efficient
-    if (mFlags & PARTIAL_UPDATES)
-        mFlags &= ~SWAP_RECTANGLE;
-#endif
 
     LOGI("EGL informations:");
     LOGI("# of configs : %d", numConfigs);
@@ -469,3 +457,19 @@ void DisplayHardware::dump(String8& res) const
     mNativeWindow->dump(res);
 }
 
+#ifdef QCOM_HDMI_OUT
+void DisplayHardware::orientationChanged(int orientation) const
+{
+    mNativeWindow->orientationChanged(orientation);
+}
+
+void DisplayHardware::setActionSafeWidthRatio(float asWidthRatio) const
+{
+    mNativeWindow->setActionSafeWidthRatio(asWidthRatio);
+}
+
+void DisplayHardware::setActionSafeHeightRatio(float asHeightRatio) const
+{
+    mNativeWindow->setActionSafeHeightRatio(asHeightRatio);
+}
+#endif

@@ -16,6 +16,10 @@ extern "C" {
 #   define GL_APIENTRYP GL_APIENTRY*
 #endif
 
+#ifdef QCOM_HARDWARE
+#define GL_GLEXT_PROTOTYPES
+#endif
+
 /*------------------------------------------------------------------------*
  * OES extension tokens
  *------------------------------------------------------------------------*/
@@ -818,4 +822,3 @@ typedef void (GL_APIENTRYP PFNGLENDTILINGQCOMPROC) (GLbitfield preserveMask);
 #endif
 
 #endif /* __gl2ext_h_ */
-
