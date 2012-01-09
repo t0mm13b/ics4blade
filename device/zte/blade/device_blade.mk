@@ -47,7 +47,7 @@ PRODUCT_PACKAGES += \
     SpareParts \
     Development \
     Term \
-    gralloc.blade \
+    gralloc.msm7x27 \
     audio.a2dp.default \
     audio.primary.blade \
     audio_policy.blade \
