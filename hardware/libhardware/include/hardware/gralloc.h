@@ -47,57 +47,57 @@ __BEGIN_DECLS
 
 enum {
     /* buffer is never read in software */
-    GRALLOC_USAGE_SW_READ_NEVER   = 0x00000000,
+    GRALLOC_USAGE_SW_READ_NEVER         = 0x00000000,
     /* buffer is rarely read in software */
-    GRALLOC_USAGE_SW_READ_RARELY  = 0x00000002,
+    GRALLOC_USAGE_SW_READ_RARELY        = 0x00000002,
     /* buffer is often read in software */
-    GRALLOC_USAGE_SW_READ_OFTEN   = 0x00000003,
+    GRALLOC_USAGE_SW_READ_OFTEN         = 0x00000003,
     /* mask for the software read values */
-    GRALLOC_USAGE_SW_READ_MASK    = 0x0000000F,
+    GRALLOC_USAGE_SW_READ_MASK          = 0x0000000F,
     
     /* buffer is never written in software */
-    GRALLOC_USAGE_SW_WRITE_NEVER  = 0x00000000,
+    GRALLOC_USAGE_SW_WRITE_NEVER        = 0x00000000,
     /* buffer is never written in software */
-    GRALLOC_USAGE_SW_WRITE_RARELY = 0x00000020,
+    GRALLOC_USAGE_SW_WRITE_RARELY       = 0x00000020,
     /* buffer is never written in software */
-    GRALLOC_USAGE_SW_WRITE_OFTEN  = 0x00000030,
+    GRALLOC_USAGE_SW_WRITE_OFTEN        = 0x00000030,
     /* mask for the software write values */
-    GRALLOC_USAGE_SW_WRITE_MASK   = 0x000000F0,
-
+    GRALLOC_USAGE_SW_WRITE_MASK         = 0x000000F0,
+    
     /* buffer will be used as an OpenGL ES texture */
-    GRALLOC_USAGE_HW_TEXTURE      = 0x00000100,
+    GRALLOC_USAGE_HW_TEXTURE            = 0x00000100,
     /* buffer will be used as an OpenGL ES render target */
-    GRALLOC_USAGE_HW_RENDER       = 0x00000200,
+    GRALLOC_USAGE_HW_RENDER             = 0x00000200,
     /* buffer will be used by the 2D hardware blitter */
-    GRALLOC_USAGE_HW_2D           = 0x00000400,
+    GRALLOC_USAGE_HW_2D                 = 0x00000400,
     /* buffer will be used by the HWComposer HAL module */
-    GRALLOC_USAGE_HW_COMPOSER     = 0x00000800,
+    GRALLOC_USAGE_HW_COMPOSER           = 0x00000800,
     /* buffer will be used with the framebuffer device */
-    GRALLOC_USAGE_HW_FB           = 0x00001000,
+    GRALLOC_USAGE_HW_FB                 = 0x00001000,
+    /* buffer will be used with the HW video encoder */
+    GRALLOC_USAGE_HW_VIDEO_ENCODER      = 0x00010000,
     /* mask for the software usage bit-mask */
-    GRALLOC_USAGE_HW_MASK         = 0x00001F00,
-
+    GRALLOC_USAGE_HW_MASK               = 0x00011F00,
+    
     /* buffer should be displayed full-screen on an external display when
      * possible
      */
-    GRALLOC_USAGE_EXTERNAL_DISP   = 0x00002000,
-
+    GRALLOC_USAGE_EXTERNAL_DISP         = 0x00002000,
+    
     /* Must have a hardware-protected path to external display sink for
      * this buffer.  If a hardware-protected path is not available, then
      * either don't composite only this buffer (preferred) to the
      * external sink, or (less desirable) do not route the entire
      * composition to the external sink.
      */
-    GRALLOC_USAGE_PROTECTED       = 0x00004000,
-
+    GRALLOC_USAGE_PROTECTED             = 0x00004000,
+    
     /* implementation-specific private usage flags */
-    GRALLOC_USAGE_PRIVATE_0       = 0x10000000,
-    GRALLOC_USAGE_PRIVATE_1       = 0x20000000,
-    GRALLOC_USAGE_PRIVATE_2       = 0x40000000,
-    GRALLOC_USAGE_PRIVATE_3       = 0x80000000,
-    GRALLOC_USAGE_PRIVATE_MASK    = 0xF0000000,
-	GRALLOC_MODULE_PERFORM_CREATE_HANDLE_FROM_BUFFER =  0x080000001,
-	GRALLOC_MODULE_PERFORM_DECIDE_PUSH_BUFFER_HANDLING = 0x080000002,
+    GRALLOC_USAGE_PRIVATE_0             = 0x10000000,
+    GRALLOC_USAGE_PRIVATE_1             = 0x20000000,
+    GRALLOC_USAGE_PRIVATE_2             = 0x40000000,
+    GRALLOC_USAGE_PRIVATE_3             = 0x80000000,
+    GRALLOC_USAGE_PRIVATE_MASK          = 0xF0000000,
 };
 
 /*****************************************************************************/
@@ -126,8 +126,8 @@ typedef struct gralloc_module_t {
      * returns an error if this buffer_handle_t is not valid.
      */
     int (*registerBuffer)(struct gralloc_module_t const* module,
-            buffer_handle_t handle);
-
+                          buffer_handle_t handle);
+    
     /*
      * (*unregisterBuffer)() is called once this handle is no longer needed in
      * this process. After this call, it is an error to call (*lock)(),
@@ -141,7 +141,7 @@ typedef struct gralloc_module_t {
      * explicitly registered first.
      */
     int (*unregisterBuffer)(struct gralloc_module_t const* module,
-            buffer_handle_t handle);
+                            buffer_handle_t handle);
     
     /*
      * The (*lock)() method is called before a buffer is accessed for the 
@@ -175,10 +175,10 @@ typedef struct gralloc_module_t {
      */
     
     int (*lock)(struct gralloc_module_t const* module,
-            buffer_handle_t handle, int usage,
-            int l, int t, int w, int h,
-            void** vaddr);
-
+                buffer_handle_t handle, int usage,
+                int l, int t, int w, int h,
+                void** vaddr);
+    
     
     /*
      * The (*unlock)() method must be called after all changes to the buffer
@@ -186,13 +186,13 @@ typedef struct gralloc_module_t {
      */
     
     int (*unlock)(struct gralloc_module_t const* module,
-            buffer_handle_t handle);
-
-
+                  buffer_handle_t handle);
+    
+    
     /* reserved for future use */
     int (*perform)(struct gralloc_module_t const* module,
-            int operation, ... );
-
+                   int operation, ... );
+    
     /* reserved for future use */
     void* reserved_proc[7];
 } gralloc_module_t;
@@ -206,7 +206,7 @@ typedef struct gralloc_module_t {
 
 typedef struct alloc_device_t {
     struct hw_device_t common;
-
+    
     /* 
      * (*alloc)() Allocates a buffer in graphic memory with the requested
      * parameters and returns a buffer_handle_t and the stride in pixels to
@@ -218,9 +218,9 @@ typedef struct alloc_device_t {
      */
     
     int (*alloc)(struct alloc_device_t* dev,
-            int w, int h, int format, int usage,
-            buffer_handle_t* handle, int* stride);
-
+                 int w, int h, int format, int usage,
+                 buffer_handle_t* handle, int* stride);
+    
     /*
      * (*free)() Frees a previously allocated buffer. 
      * Behavior is undefined if the buffer is still mapped in any process,
@@ -232,14 +232,14 @@ typedef struct alloc_device_t {
      * Returns 0 on success or -errno on error.
      */
     int (*free)(struct alloc_device_t* dev,
-            buffer_handle_t handle);
-
+                buffer_handle_t handle);
+    
     /* This hook is OPTIONAL.
      *
      * If non NULL it will be caused by SurfaceFlinger on dumpsys
      */
     void (*dump)(struct alloc_device_t *dev, char *buff, int buff_len);
-
+    
     void* reserved_proc[7];
 } alloc_device_t;
 
@@ -247,9 +247,9 @@ typedef struct alloc_device_t {
 /** convenience API for opening and closing a supported device */
 
 static inline int gralloc_open(const struct hw_module_t* module, 
-        struct alloc_device_t** device) {
+                               struct alloc_device_t** device) {
     return module->methods->open(module, 
-            GRALLOC_HARDWARE_GPU0, (struct hw_device_t**)device);
+                                 GRALLOC_HARDWARE_GPU0, (struct hw_device_t**)device);
 }
 
 static inline int gralloc_close(struct alloc_device_t* device) {
