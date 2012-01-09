@@ -51,17 +51,3 @@ ifeq ($(TARGET_GRALLOC_USES_ASHMEM),true)
 LOCAL_CFLAGS += -DUSE_ASHMEM
 endif
 include $(BUILD_SHARED_LIBRARY)
-
-
-# Build a host library for testing
-ifeq ($(HOST_OS),linux)
-include $(CLEAR_VARS)
-LOCAL_SRC_FILES :=		\
-    gpu.cpp				\
-	pmemalloc.cpp
-
-LOCAL_MODULE_TAGS := tests
-LOCAL_MODULE := libgralloc_qsd8k_host
-LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc-qsd8k\"
-include $(BUILD_HOST_STATIC_LIBRARY)
-endif

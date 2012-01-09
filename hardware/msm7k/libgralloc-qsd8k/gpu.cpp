@@ -17,8 +17,13 @@
 #include <limits.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <cutils/properties.h>
 
 #include <sys/mman.h>
+
+#ifdef HOST
+#include <linux/ashmem.h>
+#endif
 
 #include "gr.h"
 #include "gpu.h"
@@ -27,7 +32,8 @@ gpu_context_t::gpu_context_t(Deps& deps, PmemAllocator& pmemAllocator,
         PmemAllocator& pmemAdspAllocator, const private_module_t* module) :
     deps(deps),
     pmemAllocator(pmemAllocator),
-    pmemAdspAllocator(pmemAdspAllocator)
+    pmemAdspAllocator(pmemAdspAllocator),
+    isMDPComposition(false)
 {
     // Zero out the alloc_device_t
     memset(static_cast<alloc_device_t*>(this), 0, sizeof(alloc_device_t));
@@ -39,6 +45,11 @@ gpu_context_t::gpu_context_t(Deps& deps, PmemAllocator& pmemAllocator,
     common.close   = gralloc_close;
     alloc          = gralloc_alloc;
     free           = gralloc_free;
+
+    char property[PROPERTY_VALUE_MAX];
+    if((property_get("debug.composition.type", property, NULL) > 0) &&
+       (strncmp(property, "mdp", 3) == 0))
+        isMDPComposition = true;
 }
 
 int gpu_context_t::gralloc_alloc_framebuffer_locked(size_t size, int usage,
@@ -47,7 +58,7 @@ int gpu_context_t::gralloc_alloc_framebuffer_locked(size_t size, int usage,
     private_module_t* m = reinterpret_cast<private_module_t*>(common.module);
 
     // we don't support allocations with both the FB and PMEM_ADSP flags
-    if (usage & GRALLOC_USAGE_PRIVATE_PMEM_ADSP) {
+    if (usage & GRALLOC_USAGE_PRIVATE_ADSP_HEAP) {
         return -EINVAL;
     }
 
@@ -79,7 +90,7 @@ int gpu_context_t::gralloc_alloc_framebuffer_locked(size_t size, int usage,
 
     // create a "fake" handles for it
     intptr_t vaddr = intptr_t(m->framebuffer->base);
-    private_handle_t* hnd = new private_handle_t(dup(m->framebuffer->fd), size,
+    private_handle_t* hnd = new private_handle_t(dup(m->framebuffer->fd), bufferSize,
                                                  private_handle_t::PRIV_FLAGS_USES_PMEM |
                                                  private_handle_t::PRIV_FLAGS_FRAMEBUFFER);
 
@@ -110,6 +121,46 @@ int gpu_context_t::gralloc_alloc_framebuffer(size_t size, int usage,
     return err;
 }
 
+int gpu_context_t::alloc_ashmem_buffer(size_t size, unsigned int postfix, void** pBase,
+            int* pOffset, int* pFd)
+{
+    int err = 0;
+    int fd = -1;
+    void* base = 0;
+    int offset = 0;
+
+    char name[ASHMEM_NAME_LEN];
+    snprintf(name, ASHMEM_NAME_LEN, "gralloc-buffer-%x", postfix);
+    int prot = PROT_READ | PROT_WRITE;
+    fd = ashmem_create_region(name, size);
+    if (fd < 0) {
+        LOGE("couldn't create ashmem (%s)", strerror(errno));
+        err = -errno;
+    } else {
+        if (ashmem_set_prot_region(fd, prot) < 0) {
+            LOGE("ashmem_set_prot_region(fd=%d, prot=%x) failed (%s)",
+                 fd, prot, strerror(errno));
+            close(fd);
+            err = -errno;
+        } else {
+            base = mmap(0, size, prot, MAP_SHARED|MAP_POPULATE|MAP_LOCKED, fd, 0);
+            if (base == MAP_FAILED) {
+                LOGE("alloc mmap(fd=%d, size=%d, prot=%x) failed (%s)",
+                     fd, size, prot, strerror(errno));
+                close(fd);
+                err = -errno;
+            } else {
+                memset((char*)base + offset, 0, size);
+            }
+        }
+    }
+    if(err == 0) {
+        *pFd = fd;
+        *pBase = base;
+        *pOffset = offset;
+    }
+    return err;
+}
 
 int gpu_context_t::gralloc_alloc_buffer(size_t size, int usage, buffer_handle_t* pHandle)
 {
@@ -123,7 +174,7 @@ int gpu_context_t::gralloc_alloc_buffer(size_t size, int usage, buffer_handle_t*
     int lockState = 0;
 
     size = roundUpToPageSize(size);
-
+#ifndef USE_ASHMEM
     if (usage & GRALLOC_USAGE_HW_TEXTURE) {
         // enable pmem in that case, so our software GL can fallback to
         // the copybit module.
@@ -133,15 +184,32 @@ int gpu_context_t::gralloc_alloc_buffer(size_t size, int usage, buffer_handle_t*
     if (usage & GRALLOC_USAGE_HW_2D) {
         flags |= private_handle_t::PRIV_FLAGS_USES_PMEM;
     }
+#else
+    if (usage & GRALLOC_USAGE_PRIVATE_EBI_HEAP){
+        flags |= private_handle_t::PRIV_FLAGS_USES_PMEM;
+    }
 
-    if (usage & GRALLOC_USAGE_PRIVATE_PMEM_ADSP) {
+    // Enable use of PMEM only when MDP composition is used (and other conditions apply).
+    // Else fall back on using ASHMEM
+    if (isMDPComposition &&
+        ((usage & GRALLOC_USAGE_HW_TEXTURE) || (usage & GRALLOC_USAGE_HW_2D)) ) {
+        flags |= private_handle_t::PRIV_FLAGS_USES_PMEM;
+    }
+#endif
+    if (usage & GRALLOC_USAGE_PRIVATE_ADSP_HEAP) {
         flags |= private_handle_t::PRIV_FLAGS_USES_PMEM_ADSP;
         flags &= ~private_handle_t::PRIV_FLAGS_USES_PMEM;
     }
 
     private_module_t* m = reinterpret_cast<private_module_t*>(common.module);
-
-    if ((flags & private_handle_t::PRIV_FLAGS_USES_PMEM) != 0 ||
+    if((flags & private_handle_t::PRIV_FLAGS_USES_PMEM) == 0 &&
+       (flags & private_handle_t::PRIV_FLAGS_USES_PMEM_ADSP) == 0) {
+       flags |= private_handle_t::PRIV_FLAGS_USES_ASHMEM;
+       err = alloc_ashmem_buffer(size, (unsigned int)pHandle, &base, &offset, &fd);
+       if(err >= 0)
+            lockState |= private_handle_t::LOCK_STATE_MAPPED; 
+    }
+    else if ((flags & private_handle_t::PRIV_FLAGS_USES_PMEM) != 0 ||
         (flags & private_handle_t::PRIV_FLAGS_USES_PMEM_ADSP) != 0) {
 
         PmemAllocator* pma = 0;
@@ -164,11 +232,13 @@ int gpu_context_t::gralloc_alloc_buffer(size_t size, int usage, buffer_handle_t*
         // Allocate the buffer from pmem
         err = pma->alloc_pmem_buffer(size, usage, &base, &offset, &fd);
         if (err < 0) {
-            if (((usage & GRALLOC_USAGE_HW_MASK) == 0) &&
-                ((usage & GRALLOC_USAGE_PRIVATE_PMEM_ADSP) == 0)) {
+            if (((usage & GRALLOC_USAGE_PRIVATE_EBI_HEAP) == 0) &&
+                ((usage & GRALLOC_USAGE_PRIVATE_ADSP_HEAP) == 0) &&
+                 !isMDPComposition) {
                 // the caller didn't request PMEM, so we can try something else
                 flags &= ~private_handle_t::PRIV_FLAGS_USES_PMEM;
                 err = 0;
+                LOGE("Pmem allocation failed. Trying ashmem");
                 goto try_ashmem;
             } else {
                 LOGE("couldn't open pmem (%s)", strerror(errno));
@@ -176,10 +246,12 @@ int gpu_context_t::gralloc_alloc_buffer(size_t size, int usage, buffer_handle_t*
         }
     } else {
 try_ashmem:
-        fd = deps.ashmem_create_region("gralloc-buffer", size);
-        if (fd < 0) {
-            LOGE("couldn't create ashmem (%s)", strerror(errno));
-            err = -errno;
+        err = alloc_ashmem_buffer(size, (unsigned int)pHandle, &base, &offset, &fd);
+        if (err >= 0) {
+            lockState |= private_handle_t::LOCK_STATE_MAPPED;
+            flags |= private_handle_t::PRIV_FLAGS_USES_ASHMEM;
+        } else {
+            LOGE("Ashmem fallback failed");
         }
     }
 
@@ -239,6 +311,7 @@ int gpu_context_t::alloc_impl(int w, int h, int format, int usage,
             break;
 
         case HAL_PIXEL_FORMAT_YV12:
+        case HAL_PIXEL_FORMAT_YCrCb_420_SP:
             if ((w&1) || (h&1)) {
                 LOGE("w or h is odd for HAL_PIXEL_FORMAT_YV12");
                 return -EINVAL;
@@ -285,6 +358,16 @@ int gpu_context_t::free_impl(private_handle_t const* hnd) {
             pmem_allocator = &pmemAllocator;
         } else if (hnd->flags & private_handle_t::PRIV_FLAGS_USES_PMEM_ADSP) {
             pmem_allocator = &pmemAdspAllocator;
+        } else if (hnd->flags & private_handle_t::PRIV_FLAGS_USES_ASHMEM) {
+            // free ashmem
+            if (hnd->fd >= 0) {
+                if (hnd->base) {
+                    int err = munmap((void*)hnd->base, hnd->size);
+                    LOGE_IF(err<0, "ASHMEM_UNMAP failed (%s), "
+                        "fd=%d, sub.offset=%d, sub.size=%d",
+                        strerror(errno), hnd->fd, hnd->offset, hnd->size);
+                }
+            }
         }
         if (pmem_allocator) {
             pmem_allocator->free_pmem_buffer(hnd->size, (void*)hnd->base,

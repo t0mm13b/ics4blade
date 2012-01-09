@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <cutils/properties.h>
 
 #include <linux/android_pmem.h>
 
@@ -64,12 +65,36 @@ extern int gralloc_perform(struct gralloc_module_t const* module,
 class PmemAllocatorDepsDeviceImpl : public PmemUserspaceAllocator::Deps,
         public PmemKernelAllocator::Deps {
 
+    const private_module_t* module;
+
     virtual size_t getPmemTotalSize(int fd, size_t* size) {
+        int err = 0;
+#ifndef TARGET_MSM7x27
         pmem_region region;
-        int err = ioctl(fd, PMEM_GET_TOTAL_SIZE, &region);
+        err = ioctl(fd, PMEM_GET_TOTAL_SIZE, &region);
         if (err == 0) {
             *size = region.len;
         }
+#else
+#ifdef USE_ASHMEM
+        char property[PROPERTY_VALUE_MAX];
+        bool isMDPComposition = false;
+        if((property_get("debug.composition.type", property, NULL) > 0) &&
+          (strncmp(property, "mdp", 3) == 0))
+            isMDPComposition = true;
+
+        if (isMDPComposition) {
+            *size = 23<<20; //23MB for 7x27
+        } else {
+            if(module != NULL)
+                *size = module->info.xres * module->info.yres * 2 * 2;
+            else
+                return -ENOMEM;
+        }
+#else
+	*size = 23<<20; //23MB for 7x27
+#endif
+#endif
         return err;
     }
 
@@ -85,6 +110,14 @@ class PmemAllocatorDepsDeviceImpl : public PmemUserspaceAllocator::Deps,
     virtual int unmapPmem(int fd, int offset, size_t size) {
         struct pmem_region sub = { offset, size };
         return ioctl(fd, PMEM_UNMAP, &sub);
+    }
+
+    virtual int cleanPmem(int fd, unsigned long base, int offset, size_t size) {
+        struct pmem_addr pmem_addr;
+        pmem_addr.vaddr = base;
+        pmem_addr.offset = offset;
+        pmem_addr.length = size;
+        return ioctl(fd, PMEM_CLEAN_INV_CACHES, &pmem_addr);
     }
 
     virtual int getErrno() {
@@ -107,6 +140,12 @@ class PmemAllocatorDepsDeviceImpl : public PmemUserspaceAllocator::Deps,
     virtual int close(int fd) {
         return ::close(fd);
     }
+
+public:
+    void setModule(const private_module_t* m) {
+        module = m;
+    }
+
 };
 
 class GpuContextDepsDeviceImpl : public gpu_context_t::Deps {
@@ -184,6 +223,7 @@ int gralloc_device_open(const hw_module_t* module, const char* name,
     if (!strcmp(name, GRALLOC_HARDWARE_GPU0)) {
         const private_module_t* m = reinterpret_cast<const private_module_t*>(
                 module);
+        pmemAllocatorDeviceDepsImpl.setModule(m);
         gpu_context_t *dev;
         dev = new gpu_context_t(gpuContextDeviceDepsImpl, pmemAllocator,
                 pmemAdspAllocator, m);
