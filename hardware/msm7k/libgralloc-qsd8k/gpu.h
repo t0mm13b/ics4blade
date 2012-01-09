@@ -71,9 +71,6 @@ class gpu_context_t : public alloc_device_t {
     Deps& deps;
     PmemAllocator& pmemAllocator;
     PmemAllocator& pmemAdspAllocator;
-    bool isMDPComposition;
-    int alloc_ashmem_buffer(size_t size, unsigned int postfix, void** pBase,
-            int* pOffset, int* pFd);
 };
 
 #endif  // GRALLOC_QSD8K_GPU_H
