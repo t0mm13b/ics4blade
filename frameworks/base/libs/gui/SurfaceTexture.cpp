@@ -36,7 +36,7 @@
 #include <utils/Log.h>
 #include <utils/String8.h>
 
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 #include <qcom_ui.h>
 #endif
 
@@ -142,7 +142,7 @@ SurfaceTexture::SurfaceTexture(GLuint tex, bool allowSynchronousMode,
     mUseFenceSync(false),
 #endif
     mTexTarget(texTarget),
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
     mReqSize(0),
 #endif
     mFrameCounter(0) {
@@ -155,7 +155,7 @@ SurfaceTexture::SurfaceTexture(GLuint tex, bool allowSynchronousMode,
     mNextCrop.makeInvalid();
     memcpy(mCurrentTransformMatrix, mtxIdentity,
             sizeof(mCurrentTransformMatrix));
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
     mNextBufferInfo.width = 0;
     mNextBufferInfo.height = 0;
     mNextBufferInfo.format = 0;
@@ -482,7 +482,7 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
         mSlots[buf].mBufferState = BufferSlot::DEQUEUED;
 
         const sp<GraphicBuffer>& buffer(mSlots[buf].mGraphicBuffer);
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 	qBufGeometry currentGeometry;
 	if (buffer != NULL)
 	   currentGeometry.set(buffer->width, buffer->height, buffer->format);
@@ -497,7 +497,7 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
 				mNextBufferInfo.format);
 #endif
 	if ((buffer == NULL) ||
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 	   needNewBuffer(currentGeometry, requiredGeometry, updatedGeometry) ||
 #else
 	   (uint32_t(buffer->width)  != w) ||
@@ -519,7 +519,7 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
             if (updateFormat) {
                 mPixelFormat = format;
             }
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 	    checkBuffer((native_handle_t *)graphicBuffer->handle, mReqSize, usage);
 #endif
             mSlots[buf].mGraphicBuffer = graphicBuffer;
@@ -656,7 +656,7 @@ status_t SurfaceTexture::queueBuffer(int buf, int64_t timestamp,
         mFrameCounter++;
         mSlots[buf].mFrameNumber = mFrameCounter;
 
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 	// Update the buffer Geometry if required
 	qBufGeometry updatedGeometry;
 	updatedGeometry.set(mNextBufferInfo.width,
@@ -796,13 +796,13 @@ status_t SurfaceTexture::disconnect(int api) {
     return err;
 }
 
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 status_t SurfaceTexture::performQcomOperation(int operation, int arg1, int arg2, int arg3)
 {
      ST_LOGV("SurfaceTexture::performQcomOperation operation=%d", operation);
 
      switch(operation) {
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 	case NATIVE_WINDOW_SET_BUFFERS_SIZE:
 	    mReqSize = arg1;
 	    break;
@@ -853,7 +853,7 @@ status_t SurfaceTexture::updateTexImage() {
         // Update the GL texture object.
         EGLImageKHR image = mSlots[buf].mEglImage;
         EGLDisplay dpy = eglGetCurrentDisplay();
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 	if (isGPUSupportedFormat(mSlots[buf].mGraphicBuffer->format)) {
             // Update the GL texture object.
             EGLImageKHR image = mSlots[buf].mEglImage;
@@ -868,7 +868,7 @@ status_t SurfaceTexture::updateTexImage() {
             mSlots[buf].mEglDisplay = dpy;
 #endif
             if (image == EGL_NO_IMAGE_KHR) {
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
 		EGLDisplay dpy = eglGetCurrentDisplay();
                 if (mSlots[buf].mGraphicBuffer == 0) {
                     ST_LOGE("buffer at slot %d is null", buf);
@@ -902,7 +902,7 @@ status_t SurfaceTexture::updateTexImage() {
         if (failed) {
             return -EINVAL;
         }
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_NEW
       }
 #endif
         if (mCurrentTexture != INVALID_BUFFER_SLOT) {

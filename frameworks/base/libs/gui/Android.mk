@@ -34,6 +34,7 @@ ifneq ($(BOARD_USES_QCOM_LEGACY),true)
 LOCAL_SHARED_LIBRARIES += \
         libQcomUI
 LOCAL_C_INCLUDES := hardware/qcom/display/libqcomui
+LOCAL_CFLAGS += -DQCOM_NEW
 endif
 LOCAL_CFLAGS += -DQCOM_HARDWARE
 ifeq ($(TARGET_QCOM_HDMI_OUT),true)
