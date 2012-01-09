@@ -34,7 +34,7 @@ TARGET_PREBUILT_RECOVERY_KERNEL := device/zte/blade/recovery_kernel
 
 BOARD_KERNEL_CMDLINE := androidboot.hardware=blade console=null
 
-TARGET_BOARD_PLATFORM := msm7k
+TARGET_BOARD_PLATFORM := msm7x27
 TARGET_ARCH_VARIANT := armv6-vfp
 TARGET_CPU_ABI := armeabi
 TARGET_CPU_ABI := armeabi-v6l
