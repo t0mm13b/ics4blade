@@ -301,7 +301,8 @@ void AudioHardware::closeInputStream(AudioStreamIn* in) {
         delete mInputs[index];
         mLock.lock();
         mInputs.removeAt(index);
-    }
+		// mLock.unlock();
+	}
 }
 
 status_t AudioHardware::setMode(int mode)
