@@ -61,3 +61,4 @@ else ifeq ($(TARGET_BOARD_PLATFORM),msm7k)
     msm7k_dirs := $(common_msm_dirs) boot libgralloc $(LIBAUDIO)
     include $(call all-named-subdir-makefiles,$(msm7k_dirs))
 endif
+
