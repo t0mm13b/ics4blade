@@ -22,7 +22,6 @@
 #include <sys/types.h>
 
 #include "gr.h"
-#include "pmemalloc.h"
 
 // ----------------------------------------------------------------------------
 
@@ -92,19 +91,19 @@ public:
     }
 };
 
-class SimpleBestFitAllocator : public PmemUserspaceAllocator::Deps::Allocator
+class SimpleBestFitAllocator
 {
 public:
 
     SimpleBestFitAllocator();
     SimpleBestFitAllocator(size_t size);
-    virtual ~SimpleBestFitAllocator();
+    ~SimpleBestFitAllocator();
 
-    virtual ssize_t setSize(size_t size);
+    ssize_t     setSize(size_t size);
 
-    virtual ssize_t allocate(size_t size, uint32_t flags = 0);
-    virtual ssize_t deallocate(size_t offset);
-    virtual size_t  size() const;
+    ssize_t     allocate(size_t size, uint32_t flags = 0);
+    ssize_t     deallocate(size_t offset);
+    size_t      size() const;
 
 private:
     struct chunk_t {

@@ -51,7 +51,6 @@ PRODUCT_PACKAGES += \
     audio.a2dp.default \
     audio.primary.blade \
     audio_policy.blade \
-	copybit.blade \
     gps.blade \
     lights.blade \
     sensors.blade \
