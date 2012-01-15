@@ -69,7 +69,7 @@ PRODUCT_COPY_FILES += \
 
 # fstab
 PRODUCT_COPY_FILES += \
-    device/zte/blade/prebuilt/etc/vold.fstab:system/etc/vold.fstab
+    device/zte/blade/prebuilt/system/etc/vold.fstab:system/etc/vold.fstab
 
 # Init
 PRODUCT_COPY_FILES += \
