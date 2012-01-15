@@ -1343,7 +1343,7 @@ status_t AudioHardware::doRouting(AudioStreamInMSM72xx *input)
 
        if(playback_in_progress)
            //msm72xx_enable_postproc(true);
-           msm72xx_enable_postproc(true);
+           msm72xx_enable_postproc(false);
 
        mCurSndDevice = new_snd_device;
     }
