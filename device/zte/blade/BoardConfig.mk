@@ -30,7 +30,7 @@ TARGET_SPECIFIC_HEADER_PATH += device/zte/blade/include
 
 TARGET_NO_BOOTLOADER := true
 
-TARGET_PREBUILT_RECOVERY_KERNEL := device/zte/blade/recovery_kernel
+TARGET_PREBUILT_RECOVERY_KERNEL := device/zte/blade/prebuilt/kernel/recovery_kernel
 
 BOARD_KERNEL_CMDLINE := androidboot.hardware=blade console=null
 
