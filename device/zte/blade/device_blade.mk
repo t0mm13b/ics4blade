@@ -43,6 +43,7 @@ PRODUCT_PACKAGES += \
     Development \
     Term \
     gralloc.msm7x27 \
+    camera.msm7x27 \
     audio.a2dp.default \
     audio.primary.blade \
     audio_policy.blade \
@@ -62,6 +63,8 @@ $(call inherit-product-if-exists, vendor/zte/blade/blade-vendor.mk)
 DISABLE_DEXPREOPT := false
 
 PRODUCT_COPY_FILES += \
+	device/zte/blade/prebuilt/system/lib/libcamera.so:obj/lib/libcamera.so \
+	device/zte/blade/prebuilt/system/lib/libcamera.so:system/lib/libcamera.so \
     	device/zte/blade/prebuilt/system/usr/keylayout/qwerty.kl:system/usr/keylayout/qwerty.kl \
 	device/zte/blade/prebuilt/system/usr/keylayout/blade_keypad.kl:system/usr/keylayout/blade_keypad.kl \
 	device/zte/blade/prebuilt/system/usr/idc/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc \
@@ -162,12 +165,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.media.dec.jpeg.memcap=20000000 \
     dalvik.vm.lockprof.threshold=500 \
     dalvik.vm.dexopt-flags=m=y \
-    dalvik.vm.heapstartsize=5m \
-    dalvik.vm.heapgrowthlimit=36m \
-    dalvik.vm.heapsize=64m \
+    dalvik.vm.heapsize=32m \
     dalvik.vm.execution-mode=int:fast \
     dalvik.vm.dexopt-data-only=1 \
     ro.opengles.version=131072  \
     ro.compcache.default=0 \
     persist.sys.strictmode.disable=true \
-    persist.sys.usb.config=mass_storage,adb
+    persist.sys.usb.config=mass_storage,adb \
+    ro.product.manufacturer=ZTE \
+    ro.build.fingerprint=google/yakju/maguro:4.0.1/ITL41D/223971:user/release-keys
