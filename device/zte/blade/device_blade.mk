@@ -109,12 +109,7 @@ PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
 
 #Kernel Modules
-PRODUCT_COPY_FILES += \
-    device/zte/blade/prebuilt/system/wifi/ar6000.ko:system/wifi/ar6000.ko \
-    device/zte/blade/prebuilt/system/lib/modules/2.6.35.7-perf+/cifs.ko:system/lib/modules/2.6.35.7-perf+/cifs.ko \
-    device/zte/blade/prebuilt/system/lib/modules/2.6.35.7-perf+/zram.ko:system/lib/modules/2.6.35.7-perf+/zram.ko \
-    device/zte/blade/prebuilt/system/lib/modules/2.6.35.7-perf+/lzo_compress.ko:system/lib/modules/2.6.35.7-perf+/lzo_compress.ko \
-    device/zte/blade/prebuilt/system/lib/modules/2.6.35.7-perf+/lzo_decompress.ko:system/lib/modules/2.6.35.7-perf+/lzo_decompress.ko
+PRODUCT_COPY_FILES += device/zte/blade/prebuilt/system/wifi/ar6000.ko:system/wifi/ar6000.ko 
 
 #WiFi firmware
 PRODUCT_COPY_FILES += \
