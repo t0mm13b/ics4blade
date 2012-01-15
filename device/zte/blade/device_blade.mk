@@ -37,11 +37,6 @@ PRODUCT_DEVICE := blade
 PRODUCT_MODEL := ZTE Blade
 
 PRODUCT_PACKAGES += \
-    LiveWallpapers \
-    LiveWallpapersPicker \
-    VisualizationWallpapers \
-    MagicSmokeWallpapers \
-    VisualizationWallpapers \
     librs_jni \
     Gallery3d \
     SpareParts \
