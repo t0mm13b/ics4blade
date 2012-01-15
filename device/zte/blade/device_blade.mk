@@ -67,37 +67,34 @@ $(call inherit-product-if-exists, vendor/zte/blade/blade-vendor.mk)
 DISABLE_DEXPREOPT := false
 
 PRODUCT_COPY_FILES += \
-    device/zte/blade/qwerty.kl:system/usr/keylayout/qwerty.kl \
-	device/zte/blade/blade_keypad.kl:system/usr/keylayout/blade_keypad.kl \
-	device/zte/blade/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc \
-	device/zte/blade/apns-conf.xml:system/etc/apns-conf.xml \
-	device/zte/blade/spn-conf.xml:system/etc/spn-conf.xml
+    	device/zte/blade/prebuilt/system/usr/keylayout/qwerty.kl:system/usr/keylayout/qwerty.kl \
+	device/zte/blade/prebuilt/system/usr/keylayout/blade_keypad.kl:system/usr/keylayout/blade_keypad.kl \
+	device/zte/blade/prebuilt/system/usr/idc/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc \
+	device/zte/blade/prebuilt/system/etc/spn-conf.xml:system/etc/spn-conf.xml
 
 # fstab
 PRODUCT_COPY_FILES += \
-    device/zte/blade/vold.fstab:system/etc/vold.fstab
+    device/zte/blade/prebuilt/vold.fstab:system/etc/vold.fstab
 
 # Init
 PRODUCT_COPY_FILES += \
-    device/zte/blade/init.blade.rc:root/init.blade.rc \
-    device/zte/blade/init.blade.usb.rc:root/init.blade.usb.rc \
-    device/zte/blade/ueventd.blade.rc:root/ueventd.blade.rc
+    device/zte/blade/prebuilt/root/init.blade.rc:root/init.blade.rc \
+    device/zte/blade/prebuilt/root/init.blade.usb.rc:root/init.blade.usb.rc \
+    device/zte/blade/prebuilt/root/ueventd.blade.rc:root/ueventd.blade.rc
 
 
 # Audio
 PRODUCT_COPY_FILES += \
-    device/zte/blade/AudioFilter.csv:system/etc/AudioFilter.csv \
-    device/zte/blade/AutoVolumeControl.txt:system/etc/AutoVolumeControl.txt
+    device/zte/blade/prebuilt/system/etc/AudioFilter.csv:system/etc/AudioFilter.csv \
+    device/zte/blade/prebuilt/system/etc/AutoVolumeControl.txt:system/etc/AutoVolumeControl.txt
 
 # WLAN + BT
 PRODUCT_COPY_FILES += \
-    device/zte/blade/init.bt.sh:system/etc/init.bt.sh \
-    device/zte/blade/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
-    device/zte/blade/dhcpcd.conf:system/etc/dhcpcd/dhcpcd.conf \
-    device/zte/blade/prebuilt/hostapd:system/bin/hostapd \
-    device/zte/blade/prebuilt/hostapd.conf:system/etc/wifi/hostapd.conf
-#	device/zte/blade/busybox:system/xbin/busybox 
-#	device/zte/blade/gps.blade.so:system/lib/hw/gps.blade.so
+    device/zte/blade/prebuilt/system/etc/init.bt.sh:system/etc/init.bt.sh \
+    device/zte/blade/prebuilt/system/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
+    device/zte/blade/prebuilt/system/etc/dhcpd/dhcpcd.conf:system/etc/dhcpcd/dhcpcd.conf \
+    device/zte/blade/prebuilt/system/bin/hostapd:system/bin/hostapd \
+    device/zte/blade/prebuilt/system/etc/wifi/hostapd.conf:system/etc/wifi/hostapd.conf
 
 # Install the features available on this device.
 PRODUCT_COPY_FILES += \
@@ -113,22 +110,22 @@ PRODUCT_COPY_FILES += \
 
 #Kernel Modules
 PRODUCT_COPY_FILES += \
-    device/zte/blade/prebuilt/ar6000.ko:system/wifi/ar6000.ko \
-    device/zte/blade/prebuilt/cifs.ko:system/lib/modules/2.6.35.7-perf+/cifs.ko \
-    device/zte/blade/prebuilt/zram.ko:system/lib/modules/2.6.35.7-perf+/zram.ko \
-    device/zte/blade/prebuilt/lzo_compress.ko:system/lib/modules/2.6.35.7-perf+/lzo_compress.ko \
-    device/zte/blade/prebuilt/lzo_decompress.ko:system/lib/modules/2.6.35.7-perf+/lzo_decompress.ko
+    device/zte/blade/prebuilt/system/wifi/ar6000.ko:system/wifi/ar6000.ko \
+    device/zte/blade/prebuilt/system/lib/modules/2.6.35.7-perf+/cifs.ko:system/lib/modules/2.6.35.7-perf+/cifs.ko \
+    device/zte/blade/prebuilt/system/lib/modules/2.6.35.7-perf+/zram.ko:system/lib/modules/2.6.35.7-perf+/zram.ko \
+    device/zte/blade/prebuilt/system/lib/modules/2.6.35.7-perf+/lzo_compress.ko:system/lib/modules/2.6.35.7-perf+/lzo_compress.ko \
+    device/zte/blade/prebuilt/system/lib/modules/2.6.35.7-perf+/lzo_decompress.ko:system/lib/modules/2.6.35.7-perf+/lzo_decompress.ko
 
 #WiFi firmware
 PRODUCT_COPY_FILES += \
-    device/zte/blade/firmware/regcode:system/wifi/regcode \
-    device/zte/blade/firmware/data.patch.hw2_0.bin:system/wifi/data.patch.hw2_0.bin \
-    device/zte/blade/firmware/athwlan.bin.z77:system/wifi/athwlan.bin.z77 \
-    device/zte/blade/firmware/athtcmd_ram.bin:system/wifi/athtcmd_ram.bin
+    device/zte/blade/prebuilt/system/wifi/regcode:system/wifi/regcode \
+    device/zte/blade/prebuilt/system/wifi/data.patch.hw2_0.bin:system/wifi/data.patch.hw2_0.bin \
+    device/zte/blade/prebuilt/system/wifi/athwlan.bin.z77:system/wifi/athwlan.bin.z77 \
+    device/zte/blade/prebuilt/system/wifi/athtcmd_ram.bin:system/wifi/athtcmd_ram.bin
 
 #Media profile
 PRODUCT_COPY_FILES += \
-    device/zte/blade/media_profiles.xml:system/etc/media_profiles.xml
+    device/zte/blade/prebuilt/system/etc/media_profiles.xml:system/etc/media_profiles.xml
 
 PRODUCT_PROPERTY_OVERRIDES := \
     keyguard.no_require_sim=true \
