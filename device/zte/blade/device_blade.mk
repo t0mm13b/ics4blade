@@ -164,10 +164,14 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.dexopt-flags=m=y \
     dalvik.vm.heapstartsize=5m \
     dalvik.vm.heapgrowthlimit=36m \
+    dalvik.vm.heapstartsize=5m \
+    dalvik.vm.heapgrowthlimit=36m \
     dalvik.vm.heapsize=64m \
     dalvik.vm.execution-mode=int:fast \
     dalvik.vm.dexopt-data-only=1 \
     ro.opengles.version=131072  \
     ro.compcache.default=0 \
     persist.sys.strictmode.disable=true \
-    persist.sys.usb.config=mass_storage,adb
+    persist.sys.usb.config=mass_storage,adb \
+    ro.product.manufacturer=ZTE \
+    ro.build.fingerprint=google/yakju/maguro:4.0.1/ITL41D/223971:user/release-keys
