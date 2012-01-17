@@ -164,8 +164,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.dexopt-flags=m=y \
     dalvik.vm.heapstartsize=5m \
     dalvik.vm.heapgrowthlimit=36m \
-    dalvik.vm.heapstartsize=5m \
-    dalvik.vm.heapgrowthlimit=36m \
     dalvik.vm.heapsize=64m \
     dalvik.vm.execution-mode=int:fast \
     dalvik.vm.dexopt-data-only=1 \
