@@ -89,7 +89,7 @@ BOARD_USES_AUDIO_LEGACY := true
 
 BOARD_CUSTOM_USB_CONTROLLER := ../../device/zte/blade/UsbController.cpp
 
-BOARD_UMS_LUNFILE := "/sys/devices/platform/msm_hsusb/gadget/lun0/file"
+TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/platform/msm_hsusb/gadget/lun0/file"
 
 # # cat /proc/mtd
 # dev:    size   erasesize  name
