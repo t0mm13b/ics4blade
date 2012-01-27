@@ -35,6 +35,7 @@ DEVICE_PACKAGE_OVERLAYS := device/zte/blade/overlay
 PRODUCT_NAME := zte_blade
 PRODUCT_DEVICE := blade
 PRODUCT_MODEL := ZTE Blade
+PRODUCT_MANUFACTURER := ZTE
 
 PRODUCT_PACKAGES += \
     librs_jni \
@@ -174,5 +175,4 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.compcache.default=0 \
     persist.sys.strictmode.disable=true \
     persist.sys.usb.config=mass_storage,adb \
-    ro.product.manufacturer=ZTE \
     ro.build.fingerprint=google/yakju/maguro:4.0.1/ITL41D/223971:user/release-keys
