@@ -74,7 +74,8 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
             "/sys/class/switch/usb_mass_storage/state";
     private static final String FUNCTIONS_PATH =
             "/sys/devices/virtual/usb_composite/";
-    private static final String MASS_STORAGE_FILE_PATH = "/sys/devices/platform/usb_mass_storage/lun0/file";
+    private static final String MASS_STORAGE_FILE_PATH = 
+	    Resources.getSystem().getString(com.android.internal.R.string.config_legacyUmsLunFile);
 
     private static final int MSG_UPDATE_STATE = 0;
     private static final int MSG_ENABLE_ADB = 1;
