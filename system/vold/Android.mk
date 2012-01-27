@@ -39,6 +39,10 @@ LOCAL_C_INCLUDES := $(common_c_includes)
 
 LOCAL_SHARED_LIBRARIES := $(common_shared_libraries)
 
+ifneq ($(TARGET_USE_CUSTOM_LUN_FILE_PATH),)
+LOCAL_CFLAGS += -DMASS_STORAGE_FILE_PATH=\"$(TARGET_USE_CUSTOM_LUN_FILE_PATH)\"
+endif
+
 LOCAL_MODULE_TAGS := eng tests
 
 include $(BUILD_STATIC_LIBRARY)
