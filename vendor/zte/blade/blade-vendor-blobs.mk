@@ -52,30 +52,29 @@ PRODUCT_COPY_FILES += \
     vendor/zte/blade/proprietary/libloc.so:system/lib/libloc.so \
     vendor/zte/blade/proprietary/libloc.so:obj/lib/libloc.so \
     vendor/zte/blade/proprietary/libloc-rpc.so:system/lib/libloc-rpc.so \
-    vendor/zte/blade/proprietary/libcommondefs.so:system/lib/libcommondefs.so
-
-#    vendor/zte/blade/proprietary/libOmxEvrcEnc.so:/system/lib/libOmxEvrcEnc.so \
-#    vendor/zte/blade/proprietary/libOmxAacDec.so:/system/lib/libOmxAacDec.so \
-#    vendor/zte/blade/proprietary/libOmxWmvDec.so:/system/lib/libOmxWmvDec.so \
-#    vendor/zte/blade/proprietary/libOmxQcelpDec.so:/system/lib/libOmxQcelpDec.so \
-#    vendor/zte/blade/proprietary/libOmxAmrEnc.so:/system/lib/libOmxAmrEnc.so \
-#    vendor/zte/blade/proprietary/libOmxAdpcmDec.so:/system/lib/libOmxAdpcmDec.so \
-#    vendor/zte/blade/proprietary/libOmxEvrcDec.so:/system/lib/libOmxEvrcDec.so \
-#    vendor/zte/blade/proprietary/libOmxH264Dec.so:/system/lib/libOmxH264Dec.so \
-#    vendor/zte/blade/proprietary/libOmxAmrDec.so:/system/lib/libOmxAmrDec.so \
-#    vendor/zte/blade/proprietary/libOmxAmrwbDec.so:/system/lib/libOmxAmrwbDec.so \
-#    vendor/zte/blade/proprietary/libOmxWmaDec.so:/system/lib/libOmxWmaDec.so \
-#    vendor/zte/blade/proprietary/libOmxQcelp13Enc.so:/system/lib/libOmxQcelp13Enc.so \
-#    vendor/zte/blade/proprietary/libOmxMp3Dec.so:/system/lib/libOmxMp3Dec.so \
-#    vendor/zte/blade/proprietary/libOmxMpeg4Dec.so:/system/lib/libOmxMpeg4Dec.so \
-#    vendor/zte/blade/proprietary/libOmxVidEnc.so:/system/lib/libOmxVidEnc.so \
-#    vendor/zte/blade/proprietary/libOmxAmrRtpDec.so:/system/lib/libOmxAmrRtpDec.so \
-#    vendor/zte/blade/proprietary/libOmxAacEnc.so:/system/lib/libOmxAacEnc.so \
-#    vendor/zte/blade/proprietary/libmm-adspsvc.so:/system/lib/libmm-adspsvc.so \
-#    vendor/zte/blade/proprietary/libomx_aacdec_sharedlibrary.so:system/lib/libomx_aacdec_sharedlibrary.so \
-#    vendor/zte/blade/proprietary/libomx_amrdec_sharedlibrary.so:system/lib/libomx_amrdec_sharedlibrary.so \
-#    vendor/zte/blade/proprietary/libomx_amrenc_sharedlibrary.so:system/lib/libomx_amrenc_sharedlibrary.so \
-#    vendor/zte/blade/proprietary/libomx_avcdec_sharedlibrary.so:system/lib/libomx_avcdec_sharedlibrary.so \
-#    vendor/zte/blade/proprietary/libomx_m4vdec_sharedlibrary.so:system/lib/libomx_m4vdec_sharedlibrary.so \
-#    vendor/zte/blade/proprietary/libomx_mp3dec_sharedlibrary.so:system/lib/libomx_mp3dec_sharedlibrary.so \
-#    vendor/zte/blade/proprietary/libomx_sharedlibrary.so:system/lib/libomx_sharedlibrary.so \
+    vendor/zte/blade/proprietary/libcommondefs.so:system/lib/libcommondefs.so \
+    vendor/zte/blade/proprietary/libOmxEvrcEnc.so:/system/lib/libOmxEvrcEnc.so \
+    vendor/zte/blade/proprietary/libOmxAacDec.so:/system/lib/libOmxAacDec.so \
+    vendor/zte/blade/proprietary/libOmxWmvDec.so:/system/lib/libOmxWmvDec.so \
+    vendor/zte/blade/proprietary/libOmxQcelpDec.so:/system/lib/libOmxQcelpDec.so \
+    vendor/zte/blade/proprietary/libOmxAmrEnc.so:/system/lib/libOmxAmrEnc.so \
+    vendor/zte/blade/proprietary/libOmxAdpcmDec.so:/system/lib/libOmxAdpcmDec.so \
+    vendor/zte/blade/proprietary/libOmxEvrcDec.so:/system/lib/libOmxEvrcDec.so \
+    vendor/zte/blade/proprietary/libOmxH264Dec.so:/system/lib/libOmxH264Dec.so \
+    vendor/zte/blade/proprietary/libOmxAmrDec.so:/system/lib/libOmxAmrDec.so \
+    vendor/zte/blade/proprietary/libOmxAmrwbDec.so:/system/lib/libOmxAmrwbDec.so \
+    vendor/zte/blade/proprietary/libOmxWmaDec.so:/system/lib/libOmxWmaDec.so \
+    vendor/zte/blade/proprietary/libOmxQcelp13Enc.so:/system/lib/libOmxQcelp13Enc.so \
+    vendor/zte/blade/proprietary/libOmxMp3Dec.so:/system/lib/libOmxMp3Dec.so \
+    vendor/zte/blade/proprietary/libOmxMpeg4Dec.so:/system/lib/libOmxMpeg4Dec.so \
+    vendor/zte/blade/proprietary/libOmxVidEnc.so:/system/lib/libOmxVidEnc.so \
+    vendor/zte/blade/proprietary/libOmxAmrRtpDec.so:/system/lib/libOmxAmrRtpDec.so \
+    vendor/zte/blade/proprietary/libOmxAacEnc.so:/system/lib/libOmxAacEnc.so \
+    vendor/zte/blade/proprietary/libmm-adspsvc.so:/system/lib/libmm-adspsvc.so \
+    vendor/zte/blade/proprietary/libomx_aacdec_sharedlibrary.so:system/lib/libomx_aacdec_sharedlibrary.so \
+    vendor/zte/blade/proprietary/libomx_amrdec_sharedlibrary.so:system/lib/libomx_amrdec_sharedlibrary.so \
+    vendor/zte/blade/proprietary/libomx_amrenc_sharedlibrary.so:system/lib/libomx_amrenc_sharedlibrary.so \
+    vendor/zte/blade/proprietary/libomx_avcdec_sharedlibrary.so:system/lib/libomx_avcdec_sharedlibrary.so \
+    vendor/zte/blade/proprietary/libomx_m4vdec_sharedlibrary.so:system/lib/libomx_m4vdec_sharedlibrary.so \
+    vendor/zte/blade/proprietary/libomx_mp3dec_sharedlibrary.so:system/lib/libomx_mp3dec_sharedlibrary.so \
+    vendor/zte/blade/proprietary/libomx_sharedlibrary.so:system/lib/libomx_sharedlibrary.so \
