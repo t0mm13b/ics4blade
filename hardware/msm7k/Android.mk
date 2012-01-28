@@ -29,7 +29,7 @@ ifeq ($(BOARD_USES_QCOM_LIBRPC),true)
     LIBRPC := librpc-qcom
 endif
 
-common_msm_dirs := libcopybit liblights libopencorehw $(LIBRPC) libstagefrighthw
+common_msm_dirs := libcopybit liblights libopencorehw $(LIBRPC) libstagefrighthw libomxcore
 
 ifeq ($(TARGET_BOARD_PLATFORM),qsd8k)
     ### QSD8k

@@ -14,29 +14,30 @@
 
 
 LOCAL_PATH:= $(call my-dir)
-# HAL module implemenation stored in
+# HAL module implemenation, not prelinked and stored in
 # hw/<COPYPIX_HARDWARE_MODULE_ID>.<ro.board.platform>.so
 
-ifeq ($(TARGET_BOARD_PLATFORM),msm7k)
 include $(CLEAR_VARS)
-LOCAL_MODULE_TAGS := optional
+ifeq ($(ARCH_ARM_HAVE_NEON),true)
+LOCAL_CFLAGS += -D__ARM_HAVE_NEON
+endif
+ifeq "$(findstring msm7627a,$(TARGET_PRODUCT))" "msm7627a"
+LOCAL_CFLAGS += -DTARGET_7x27A
+endif
+ifeq ($(TARGET_GRALLOC_USES_ASHMEM),true)
+LOCAL_CFLAGS += -DUSE_ASHMEM
+ifeq "$(findstring msm7627,$(TARGET_PRODUCT))" "msm7627"
+   LOCAL_CFLAGS += -DTARGET_7x27
+endif
+endif
+
+LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_SHARED_LIBRARIES := liblog
-LOCAL_SRC_FILES := copybit.cpp
-LOCAL_MODULE := copybit.msm7k
-LOCAL_C_INCLUDES += hardware/msm7k/libgralloc
+LOCAL_SRC_FILES := copybit.cpp software_converter.cpp
+LOCAL_MODULE := copybit.msm7x27
+LOCAL_MODULE_TAGS := optional
+LOCAL_C_INCLUDES += hardware/msm7k/libgralloc-qsd8k
 LOCAL_CFLAGS += -DCOPYBIT_MSM7K=1
 include $(BUILD_SHARED_LIBRARY)
-endif
 
-ifeq ($(TARGET_BOARD_PLATFORM),qsd8k)
-include $(CLEAR_VARS)
-
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
-LOCAL_SHARED_LIBRARIES := liblog
-LOCAL_SRC_FILES := copybit.cpp
-LOCAL_MODULE := copybit.qsd8k
-LOCAL_C_INCLUDES += hardware/libhardware/modules/gralloc
-LOCAL_CFLAGS += -DCOPYBIT_QSD8K=1
-include $(BUILD_SHARED_LIBRARY)
-endif

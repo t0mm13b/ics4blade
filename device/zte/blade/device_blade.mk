@@ -45,12 +45,15 @@ PRODUCT_PACKAGES += \
     Term \
     gralloc.msm7x27 \
     camera.msm7x27 \
+    copybit.msm7x27 \
     audio.a2dp.default \
     audio.primary.blade \
     audio_policy.blade \
     gps.blade \
     lights.blade \
     sensors.blade \
+    libstagefrighthw \
+    libopencorehw \
     libOmxCore \
     libOmxVidEnc \
     FM \
