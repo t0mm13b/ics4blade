@@ -42,7 +42,7 @@ ifneq (,$(findstring $(TARGET_DEVICE),tuna toro maguro))
 endif
 
 ifeq ($(TARGET_BOARD_PLATFORM), msm7x27)
-	LOCAL_CFLAGS += -DREFRESH_RATE=59
+	LOCAL_CFLAGS += -DQCOM_HARDWARE -DREFRESH_RATE=59
 endif
 
 LOCAL_SHARED_LIBRARIES := \
