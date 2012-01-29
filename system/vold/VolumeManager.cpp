@@ -44,9 +44,7 @@
 #include "cryptfs.h"
 
 #ifndef MASS_STORAGE_FILE_PATH
-#define MASS_STORAGE_FILE_PATH  "/sys/devices/platform/usb_mass_storage/lun0/file"
-#else
-#define MASS_STORAGE_FILE_PATH MASS_STORAGE_FILE_PATH
+#define MASS_STORAGE_FILE_PATH  /sys/devices/platform/usb_mass_storage/lun0/file
 #endif
 
 VolumeManager *VolumeManager::sInstance = NULL;
