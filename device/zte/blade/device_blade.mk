@@ -48,8 +48,8 @@ PRODUCT_PACKAGES += \
     libcamera \
     copybit.msm7x27 \
     audio.a2dp.default \
-    audio.primary.blade \
-    audio_policy.blade \
+    audio.primary.msm7x27 \
+    audio_policy.msm7x27 \
     gps.blade \
     lights.blade \
     sensors.blade \
