@@ -35,6 +35,10 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_CFLAGS += -fno-short-enums
 
+ifneq ($(PRODUCT_NAME),zte_blade)
+LOCAL_CFLAGS += -DZTEBLADE
+endif
+
 LOCAL_C_INCLUDES := $(TARGET_OUT_HEADERS)/mm-audio/audio-alsa
 LOCAL_C_INCLUDES += $(TARGET_OUT_HEADERS)/mm-audio/audcal
 LOCAL_C_INCLUDES += hardware/libhardware/include

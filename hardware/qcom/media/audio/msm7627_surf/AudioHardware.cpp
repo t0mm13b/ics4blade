@@ -1346,7 +1346,11 @@ status_t AudioHardware::doRouting(AudioStreamInMSM72xx *input)
        post_proc_feature_mask = new_post_proc_feature_mask;
 
        if(playback_in_progress)
-           msm72xx_enable_postproc(true);
+#ifdef ZTEBLADE
+            msm72xx_enable_postproc(false);
+#else
+            msm72xx_enable_postproc(true);
+#endif
 
        mCurSndDevice = new_snd_device;
     }
@@ -1534,7 +1538,11 @@ ssize_t AudioHardware::AudioStreamOutMSM72xx::write(const void* buffer, size_t b
             ioctl(mFd, AUDIO_START, 0);
             playback_in_progress = true;
             //enable post processing
+#ifdef ZTEBLADE
+            msm72xx_enable_postproc(false);
+#else
             msm72xx_enable_postproc(true);
+#endif
         }
     }
     return bytes;
