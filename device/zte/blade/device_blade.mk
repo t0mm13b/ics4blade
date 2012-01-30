@@ -34,7 +34,7 @@ DEVICE_PACKAGE_OVERLAYS := device/zte/blade/overlay
 # Discard inherited values and use our own instead.
 PRODUCT_NAME := zte_blade
 PRODUCT_DEVICE := blade
-PRODUCT_MODEL := ZTE Blade
+PRODUCT_MODEL := Blade
 PRODUCT_MANUFACTURER := ZTE
 
 PRODUCT_PACKAGES += \
@@ -45,6 +45,7 @@ PRODUCT_PACKAGES += \
     Term \
     gralloc.msm7x27 \
     camera.msm7x27 \
+    libcamera \
     copybit.msm7x27 \
     audio.a2dp.default \
     audio.primary.blade \
@@ -67,8 +68,6 @@ $(call inherit-product-if-exists, vendor/zte/blade/blade-vendor.mk)
 DISABLE_DEXPREOPT := false
 
 PRODUCT_COPY_FILES += \
-	device/zte/blade/prebuilt/system/lib/libcamera.so:obj/lib/libcamera.so \
-	device/zte/blade/prebuilt/system/lib/libcamera.so:system/lib/libcamera.so \
     	device/zte/blade/prebuilt/system/usr/keylayout/qwerty.kl:system/usr/keylayout/qwerty.kl \
 	device/zte/blade/prebuilt/system/usr/keylayout/blade_keypad.kl:system/usr/keylayout/blade_keypad.kl \
 	device/zte/blade/prebuilt/system/usr/idc/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc \
