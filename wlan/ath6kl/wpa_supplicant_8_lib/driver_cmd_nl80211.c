@@ -253,6 +253,33 @@ int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
 		return 0; /* Ignore it */
 	} else if(os_strncmp(cmd, "RXFILTER-REMOVE ", 16) == 0) {
 		return 0; /* Ignore it */
+	} else if(os_strncmp(cmd, "BTCOEXMODE ", 11) == 0) {
+                int mode;
+                if (sscanf(cmd, "%*s %d", &mode)==1) {
+                        /*
+                         * Android disable BT-COEX when obtaining dhcp packet except there is headset is connected
+                         * It enable the BT-COEX after dhcp process is finished
+                         * We ignore since we have our way to do bt-coex during dhcp obtaining.
+                         */
+                        switch (mode) {
+                        case 1: /* Disable*/
+                                break;
+                        case 0: /* Enable */
+                                /* fall through */
+                        case 2: /* Sense*/
+                                /* fall through */
+                        default:
+                                break;
+                        }
+                        return 0; /* ignore it */
+                }
+
+	} else if(os_strcmp(cmd, "RXFILTER-START") == 0) {
+		// STUB
+		return 0;
+	} else if(os_strcmp(cmd, "RXFILTER-STOP") == 0) {
+		// STUB
+		return 0;
 	} else { /* Use private command */
 		wpa_printf("MSG_ERROR", "%s: issuing private command %s\n", __func__, cmd);
 		if (os_strcasecmp(cmd, "BGSCAN-START") == 0) {
