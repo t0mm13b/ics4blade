@@ -10,8 +10,7 @@ LOCAL_SRC_FILES      := cameraHal.cpp
 LOCAL_PRELINK_MODULE := false
 CAMERA_LIB           := camera
 
-TARGET_GLOBAL_LD_DIRS  += -L$(LOCAL_PATH) -l${CAMERA_LIB}
-LOCAL_SHARED_LIBRARIES := liblog libdl libutils libcamera_client libbinder libcutils libhardware
+LOCAL_SHARED_LIBRARIES := liblog libdl libutils libcamera_client libbinder libcutils libhardware libcamera
 LOCAL_C_INCLUDES       := frameworks/base/services/ frameworks/base/include
 LOCAL_C_INCLUDES       += hardware/libhardware/include/ hardware/libhardware/modules/gralloc/
 
