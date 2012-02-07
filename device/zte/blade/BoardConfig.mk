@@ -60,6 +60,7 @@ ENABLE_JSC_JIT := true
 TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
 
 JS_ENGINE := v8
+HTTP_ENGINE := chrome
 
 # OpenGL drivers config file path
 BOARD_EGL_CFG := device/zte/blade/prebuilt/system/lib/egl/egl.cfg
